@@ -47,8 +47,10 @@ namespace NavisworksIfcExporter.UI
                 return;
             }
 
-            BtnExport.IsEnabled = false;
+            BtnExport.IsEnabled      = false;
             TxtLog.Clear();
+            PanelProgress.Visibility = Visibility.Visible;
+            TxtPct.Text              = "Exportando...";
 
             var options = new ExportOptions
             {
@@ -59,6 +61,8 @@ namespace NavisworksIfcExporter.UI
                 AuthorName       = TxtAuthor.Text,
                 OrganizationName = TxtOrganization.Text,
                 MappingRules     = _mappingRules,
+                Schema           = CmbSchema.SelectedIndex == 1 ? IfcSchema.Ifc2x3 : IfcSchema.Ifc4,
+                CoordDecimals    = CmbQuality.SelectedIndex switch { 1 => 3, 2 => 6, _ => 4 },
             };
 
             try
@@ -67,23 +71,31 @@ namespace NavisworksIfcExporter.UI
                 {
                     var service = new ExportService();
                     service.ProgressChanged += (_, msg) =>
-                        Dispatcher.Invoke(() => AppendLog(msg));
+                        Dispatcher.Invoke(() => {
+                            AppendLog(msg);
+                            TxtPct.Text = msg.TrimStart().Length > 18
+                                ? msg.TrimStart().Substring(0, 18) + "…"
+                                : msg.TrimStart();
+                        });
 
                     service.Export(options);
                 });
 
+                TxtPct.Text = "Concluído";
                 MessageBox.Show("Exportação concluída com sucesso!", "Sucesso",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
+                TxtPct.Text = "Erro";
                 AppendLog($"ERRO: {ex.Message}");
                 MessageBox.Show($"Erro durante a exportação:\n{ex.Message}", "Erro",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
-                BtnExport.IsEnabled = true;
+                BtnExport.IsEnabled      = true;
+                PanelProgress.Visibility = Visibility.Collapsed;
             }
         }
 

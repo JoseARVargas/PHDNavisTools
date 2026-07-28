@@ -22,7 +22,8 @@
             <RowDefinition Height="150"/>   <!-- Propriedades adicionais -->
             <RowDefinition Height="Auto"/>  <!-- Arquivo de saída -->
             <RowDefinition Height="Auto"/>  <!-- Opções CSV -->
-            <RowDefinition Height="65"/>    <!-- Progresso -->
+            <RowDefinition Height="Auto"/>  <!-- Barra de progresso -->
+            <RowDefinition Height="65"/>    <!-- Log -->
             <RowDefinition Height="Auto"/>  <!-- Botões -->
         </Grid.RowDefinitions>
 
@@ -187,15 +188,28 @@
             </StackPanel>
         </GroupBox>
 
-        <!-- ===== Progresso ===== -->
-        <GroupBox Grid.Row="5" Header="Progresso">
+        <!-- ===== Barra de progresso ===== -->
+        <Grid Grid.Row="5" x:Name="PanelProgress" Visibility="Collapsed" Margin="0,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="72"/>
+            </Grid.ColumnDefinitions>
+            <ProgressBar x:Name="PrgBar" Height="18" IsIndeterminate="True"
+                         Background="#EEE" Foreground="#1976D2"/>
+            <TextBlock x:Name="TxtPct" Grid.Column="1" Text="Aguarde..."
+                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                       FontWeight="SemiBold" FontSize="11"/>
+        </Grid>
+
+        <!-- ===== Log ===== -->
+        <GroupBox Grid.Row="6" Header="Progresso">
             <TextBox x:Name="TxtLog" IsReadOnly="True"
                      TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
                      Background="#F8F8F8" FontFamily="Consolas" FontSize="11"/>
         </GroupBox>
 
         <!-- ===== Botões ===== -->
-        <StackPanel Grid.Row="6" Orientation="Horizontal"
+        <StackPanel Grid.Row="7" Orientation="Horizontal"
                     HorizontalAlignment="Right" Margin="0,8,0,0">
             <Button x:Name="BtnExport" Content="Exportar CSV" Width="110" Height="28"
                     Margin="0,0,8,0" IsDefault="True" Click="BtnExport_Click"/>

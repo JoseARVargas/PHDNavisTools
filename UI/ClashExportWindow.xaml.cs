@@ -193,8 +193,12 @@ namespace NavisworksIfcExporter.UI
             string outputPath = TxtOutputPath.Text;
             var propRules = _propRules.Where(r => !string.IsNullOrEmpty(r.ColumnName)).ToList();
 
-            BtnExport.IsEnabled = false;
+            BtnExport.IsEnabled      = false;
             TxtLog.Clear();
+            PanelProgress.Visibility = Visibility.Visible;
+            TxtPct.Text              = "Coletando...";
+            // Yield so WPF renders the progress bar before the synchronous collection starts
+            await System.Threading.Tasks.Task.Yield();
 
             // Snapshot all data on UI/STA thread before async write
             AppendLog("Coletando dados dos clashes...");
@@ -202,20 +206,27 @@ namespace NavisworksIfcExporter.UI
                 .SelectMany(t => CollectSnapshots(t, allowedStatuses, propRules))
                 .ToList();
             AppendLog($"{snapshots.Count} clash(es) após filtro de status. Escrevendo CSV...");
+            TxtPct.Text = "Gravando CSV...";
 
             try
             {
                 await Task.Run(() => WriteSnapshotsCsv(snapshots, outputPath, separator, propRules));
+                TxtPct.Text = "Concluído";
                 MessageBox.Show("CSV exportado com sucesso!", "Sucesso",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
+                TxtPct.Text = "Erro";
                 AppendLog($"ERRO: {ex.Message}");
                 MessageBox.Show($"Erro ao exportar:\n{ex.Message}", "Erro",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            finally { BtnExport.IsEnabled = true; }
+            finally
+            {
+                BtnExport.IsEnabled      = true;
+                PanelProgress.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void BtnBrowse_Click(object sender, RoutedEventArgs e)
@@ -292,11 +303,11 @@ namespace NavisworksIfcExporter.UI
                 CreatedTime  = FormatDate(r.CreatedTime),
                 ApprovedTime = FormatDate(r.ApprovedTime),
                 ResolvedTime = FormatDate(r.ResolvedTime),
-                GuidA  = r.Item1?.InstanceGuid.ToString() ?? "",
+                GuidA  = ResolveGuid(r.Item1),
                 NameA  = r.Item1?.DisplayName ?? "",
                 ClassA = r.Item1?.ClassDisplayName ?? "",
                 FileA  = GetSourceFile(r.Item1),
-                GuidB  = r.Item2?.InstanceGuid.ToString() ?? "",
+                GuidB  = ResolveGuid(r.Item2),
                 NameB  = r.Item2?.DisplayName ?? "",
                 ClassB = r.Item2?.ClassDisplayName ?? "",
                 FileB  = GetSourceFile(r.Item2),
@@ -309,17 +320,56 @@ namespace NavisworksIfcExporter.UI
             return row;
         }
 
+        // Item1/Item2 do clash geralmente apontam para um nó de geometria folha (ex.: "Solid"),
+        // que não carrega as propriedades do elemento — essas vivem num ancestral (Insert/Revit
+        // element). Sobe a árvore (o próprio item tem prioridade) até achar a categoria/propriedade.
+        private const int MaxAncestorDepth = 8;
+
         private static string GetPropValue(ModelItem? item, string category, string propName)
         {
             if (item == null || string.IsNullOrEmpty(category) || string.IsNullOrEmpty(propName)) return "";
-            foreach (var cat in item.PropertyCategories)
+            foreach (var node in item.AncestorsAndSelf.Take(MaxAncestorDepth + 1))
             {
-                if (!cat.DisplayName.Equals(category, StringComparison.OrdinalIgnoreCase)) continue;
-                foreach (var p in cat.Properties)
-                    if (p.DisplayName.Equals(propName, StringComparison.OrdinalIgnoreCase))
-                        return p.Value?.ToDisplayString() ?? "";
+                foreach (var cat in node.PropertyCategories)
+                {
+                    if (!cat.DisplayName.Equals(category, StringComparison.OrdinalIgnoreCase)) continue;
+                    foreach (var p in cat.Properties)
+                        if (p.DisplayName.Equals(propName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var val = p.Value?.ToDisplayString();
+                            if (!string.IsNullOrEmpty(val)) return val!;
+                        }
+                }
             }
             return "";
+        }
+
+        // Real persistent GUID (Revit UniqueId / IFC GlobalId) lives in the model's own
+        // properties, not in ModelItem.InstanceGuid (which is Guid.Empty outside Revit-native
+        // models). Search item + ancestors for common GUID property names; InstanceGuid is a
+        // last-resort fallback for Revit-native models that don't expose it as a property.
+        private static readonly string[] GuidPropertyNames =
+            { "GUID", "Global Id", "GlobalId", "IFC GUID", "Unique Id", "UniqueId" };
+
+        private static string ResolveGuid(ModelItem? item)
+        {
+            if (item == null) return "";
+            foreach (var node in item.AncestorsAndSelf.Take(MaxAncestorDepth + 1))
+            {
+                foreach (var cat in node.PropertyCategories)
+                {
+                    foreach (var p in cat.Properties)
+                    {
+                        foreach (var name in GuidPropertyNames)
+                        {
+                            if (!p.DisplayName.Equals(name, StringComparison.OrdinalIgnoreCase)) continue;
+                            var val = p.Value?.ToDisplayString();
+                            if (!string.IsNullOrWhiteSpace(val)) return val!;
+                        }
+                    }
+                }
+            }
+            return item.InstanceGuid != Guid.Empty ? item.InstanceGuid.ToString() : "";
         }
 
         private static string GetSourceFile(ModelItem? item)

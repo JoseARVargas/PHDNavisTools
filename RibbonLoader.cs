@@ -49,7 +49,7 @@ namespace NavisworksIfcExporter
 
                 var btnExport = new RibbonButton
                 {
-                    Id             = "ExportIfc.PHD",
+                    Id             = "IfcExporterCommand.PHD",
                     Text           = "Exportar IFC",
                     ShowText       = true,
                     Size           = RibbonItemSize.Large,
@@ -57,20 +57,7 @@ namespace NavisworksIfcExporter
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("exportar_ifc_32x32.png"),
                     CommandHandler = new RibbonRelayCommand(() =>
-                        Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ExportIfc.PHD")),
-                };
-
-                var btnSearchSet = new RibbonButton
-                {
-                    Id             = "ExportIfcSearchSet.PHD",
-                    Text           = "Exportar por\nSearch Set",
-                    ShowText       = true,
-                    Size           = RibbonItemSize.Large,
-                    Orientation    = Orientation.Vertical,
-                    IsEnabled      = true,
-                    LargeImage     = LoadIcon("exportar_ifc_searchset_32x32.png"),
-                    CommandHandler = new RibbonRelayCommand(() =>
-                        Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ExportIfcSearchSet.PHD")),
+                        Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("IfcExporterCommand.PHD")),
                 };
 
                 var btnClashCsv = new RibbonButton
@@ -84,19 +71,6 @@ namespace NavisworksIfcExporter
                     LargeImage     = LoadIcon("exportar_clash_results_32x32.png"),
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ExportClashCsv.PHD")),
-                };
-
-                var btnIfcSelection = new RibbonButton
-                {
-                    Id             = "ExportIfcSelection.PHD",
-                    Text           = "Exportar\nSeleção IFC",
-                    ShowText       = true,
-                    Size           = RibbonItemSize.Large,
-                    Orientation    = Orientation.Vertical,
-                    IsEnabled      = true,
-                    LargeImage     = LoadIcon("exportar_selecao_ifc_32x32.png"),
-                    CommandHandler = new RibbonRelayCommand(() =>
-                        Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ExportIfcSelection.PHD")),
                 };
 
                 var btnFbxSets = new RibbonButton
@@ -114,8 +88,6 @@ namespace NavisworksIfcExporter
 
                 var panelSource = new RibbonPanelSource { Id = "PHD_IFC_Panel", Title = "IFC Export" };
                 panelSource.Items.Add(btnExport);
-                panelSource.Items.Add(btnSearchSet);
-                panelSource.Items.Add(btnIfcSelection);
 
                 var clashPanelSource = new RibbonPanelSource { Id = "PHD_Clash_Panel", Title = "Clash Detection" };
                 clashPanelSource.Items.Add(btnClashCsv);
@@ -191,9 +163,37 @@ namespace NavisworksIfcExporter
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("CheckIDS.PHD")),
                 };
 
+                var btnWriteProps = new RibbonButton
+                {
+                    Id             = "WriteProperties.PHD",
+                    Text           = "Escrever\nPropriedades",
+                    ShowText       = true,
+                    Size           = RibbonItemSize.Large,
+                    Orientation    = Orientation.Vertical,
+                    IsEnabled      = true,
+                    LargeImage     = LoadIcon("escrever_propriedades_32x32.png"),
+                    CommandHandler = new RibbonRelayCommand(() =>
+                        Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("WriteProperties.PHD")),
+                };
+
+                var btnExcelImport = new RibbonButton
+                {
+                    Id             = "ExcelImport.PHD",
+                    Text           = "Importar\nExcel",
+                    ShowText       = true,
+                    Size           = RibbonItemSize.Large,
+                    Orientation    = Orientation.Vertical,
+                    IsEnabled      = true,
+                    LargeImage     = LoadIcon("verificar_propriedades_32x32.png"),
+                    CommandHandler = new RibbonRelayCommand(() =>
+                        Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ExcelImport.PHD")),
+                };
+
                 var checkPanelSource = new RibbonPanelSource { Id = "PHD_Check_Panel", Title = "Check" };
                 checkPanelSource.Items.Add(btnCheckProps);
                 checkPanelSource.Items.Add(btnCheckIds);
+                checkPanelSource.Items.Add(btnWriteProps);
+                checkPanelSource.Items.Add(btnExcelImport);
 
                 var viewPanelSource = new RibbonPanelSource { Id = "PHD_View_Panel", Title = "View" };
                 viewPanelSource.Items.Add(btnHighlight);

@@ -1,25 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using NavisworksIfcExporter.Models;
-using Xbim.Common;
-using Xbim.Common.Step21;
-using Xbim.Ifc;
-using Xbim.IO;
-using Xbim.Ifc4.GeometricConstraintResource;
-using Xbim.Ifc4.GeometricModelResource;
-using Xbim.Ifc4.GeometryResource;
-using Xbim.Ifc4.Interfaces;
-using Xbim.Ifc4.Kernel;
-using Xbim.Ifc4.MeasureResource;
-using Xbim.Ifc4.ProductExtension;
-using Xbim.Ifc4.PropertyResource;
-using Xbim.Ifc4.RepresentationResource;
-using Xbim.Ifc4.SharedBldgElements;
-using Xbim.Ifc4.UtilityResource;
+using static NavisworksIfcExporter.Core.StreamingStepWriter;
 
 namespace NavisworksIfcExporter.Core
 {
+    /// <summary>
+    /// IFC4 / IFC2x3 writer built on StreamingStepWriter (no xBIM dependency).
+    /// Features: streaming output (no in-memory model), Pset content dedup via FNV-1a 64-bit hash,
+    /// 50+ IFC class catalog via IfcTypeCatalog, configurable coordinate precision.
+    /// Inspired by / ported from BIMCamel (MIT).
+    /// </summary>
     public class IfcWriter
     {
         private readonly string _authorName;
@@ -31,268 +25,289 @@ namespace NavisworksIfcExporter.Core
             _organizationName = organizationName;
         }
 
-        public void Write(IEnumerable<ElementData> elements, string outputPath)
+        public void Write(IEnumerable<ElementData> elements, string outputPath,
+                          IfcSchema schema = IfcSchema.Ifc4, int coordDecimals = 4)
         {
-            using var model = IfcStore.Create(XbimSchemaVersion.Ifc4, XbimStoreType.InMemoryModel);
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath) ?? ".");
+            using var w = new StreamingStepWriter(outputPath, coordDecimals);
+            w.WriteHeader(schema, Path.GetFileName(outputPath), _authorName);
 
-            model.Header.FileName.AuthorName.Add(_authorName);
-            model.Header.FileName.Organization.Add(_organizationName);
-            model.Header.FileName.OriginatingSystem = "NavisworksIfcExporter 1.0";
-            using var txn = model.BeginTransaction("Navisworks IFC Export");
+            var skel    = WriteSkeleton(w, schema);
+            var psets   = new PsetDedup();
+            var contained = new List<int>();
+            int index   = 0;
 
-            var project  = CreateProject(model);
-            var site     = CreateSite(model, project);
-            var building = CreateBuilding(model, site);
-            var storey   = CreateStorey(model, building);
+            foreach (var el in elements)
+            {
+                index++;
+                int objId = WriteElement(w, schema, skel, el, psets, index);
+                contained.Add(objId);
+            }
 
-            foreach (var element in elements)
-                CreateElement(model, storey, element);
+            if (contained.Count > 0)
+                w.Write($"IFCRELCONTAINEDINSPATIALSTRUCTURE({G()},{Ref(skel.Owner)},$,$,({Join(contained)}),{Ref(skel.Storey)})");
 
-            txn.Commit();
-            model.SaveAs(outputPath);
+            WriteDeferredPsets(w, skel.Owner, psets);
+            w.WriteFooter();
         }
 
-        // -----------------------------------------------------------------------
-        // Estrutura hierárquica IFC
-        // -----------------------------------------------------------------------
+        // ── spatial skeleton ─────────────────────────────────────────────────────
 
-        private IfcProject CreateProject(IfcStore model)
+        private struct Skel { public int Ctx, Owner, Axis, Storey, StoreyPlace; }
+
+        private Skel WriteSkeleton(StreamingStepWriter w, IfcSchema schema)
         {
-            var project = model.Instances.New<IfcProject>(p =>
-            {
-                p.Name = "Projeto Navisworks";
-                p.UnitsInContext = CreateUnits(model);
-                p.RepresentationContexts.Add(CreateGeomContext(model));
-            });
-            return project;
+            int len   = w.Write("IFCSIUNIT(*,.LENGTHUNIT.,$,.METRE.)");
+            int area  = w.Write("IFCSIUNIT(*,.AREAUNIT.,$,.SQUARE_METRE.)");
+            int vol   = w.Write("IFCSIUNIT(*,.VOLUMEUNIT.,$,.CUBIC_METRE.)");
+            int ang   = w.Write("IFCSIUNIT(*,.PLANEANGLEUNIT.,$,.RADIAN.)");
+            int units = w.Write($"IFCUNITASSIGNMENT(({Ref(len)},{Ref(area)},{Ref(vol)},{Ref(ang)}))");
+
+            int origin = w.Write("IFCCARTESIANPOINT((0.,0.,0.))");
+            int axis   = w.Write($"IFCAXIS2PLACEMENT3D({Ref(origin)},$,$)");
+            int ctx    = w.Write($"IFCGEOMETRICREPRESENTATIONCONTEXT($,'Model',3,{R(1e-5)},{Ref(axis)},$)");
+
+            int person = w.Write($"IFCPERSON($,$,{Str(_authorName)},$,$,$,$,$)");
+            int org    = w.Write($"IFCORGANIZATION($,{Str(_organizationName)},$,$,$)");
+            int pao    = w.Write($"IFCPERSONANDORGANIZATION({Ref(person)},{Ref(org)},$)");
+            int app    = w.Write($"IFCAPPLICATION({Ref(org)},'1.0','NavisworksIfcExporter','NavisIFC')");
+            long ts    = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            int owner  = w.Write($"IFCOWNERHISTORY({Ref(pao)},{Ref(app)},$,.ADDED.,$,$,$,{ts})");
+
+            int proj   = w.Write($"IFCPROJECT({G()},{Ref(owner)},'Projeto Navisworks',$,$,$,$,({Ref(ctx)}),{Ref(units)})");
+            int siteP  = w.Write("IFCCARTESIANPOINT((0.,0.,0.))");
+            int siteA  = w.Write($"IFCAXIS2PLACEMENT3D({Ref(siteP)},$,$)");
+            int sitePl = w.Write($"IFCLOCALPLACEMENT($,{Ref(siteA)})");
+            int site   = w.Write($"IFCSITE({G()},{Ref(owner)},'Site',$,$,{Ref(sitePl)},$,$,.ELEMENT.,$,$,$,$,$)");
+            int bldgPl = w.Write($"IFCLOCALPLACEMENT({Ref(sitePl)},{Ref(axis)})");
+            int bldg   = w.Write($"IFCBUILDING({G()},{Ref(owner)},'Edificio',$,$,{Ref(bldgPl)},$,$,.ELEMENT.,$,$,$)");
+            int storeyPl = w.Write($"IFCLOCALPLACEMENT({Ref(bldgPl)},{Ref(axis)})");
+            int storey = w.Write($"IFCBUILDINGSTOREY({G()},{Ref(owner)},'Pavimento 1',$,$,{Ref(storeyPl)},$,$,.ELEMENT.,0.)");
+
+            w.Write($"IFCRELAGGREGATES({G()},{Ref(owner)},$,$,{Ref(proj)},({Ref(site)}))");
+            w.Write($"IFCRELAGGREGATES({G()},{Ref(owner)},$,$,{Ref(site)},({Ref(bldg)}))");
+            w.Write($"IFCRELAGGREGATES({G()},{Ref(owner)},$,$,{Ref(bldg)},({Ref(storey)}))");
+
+            return new Skel { Ctx = ctx, Owner = owner, Axis = axis, Storey = storey, StoreyPlace = storeyPl };
         }
 
-        private IfcUnitAssignment CreateUnits(IfcStore model)
+        // ── element ──────────────────────────────────────────────────────────────
+
+        private int WriteElement(StreamingStepWriter w, IfcSchema schema, Skel skel,
+                                  ElementData el, PsetDedup psets, int index)
         {
-            return model.Instances.New<IfcUnitAssignment>(u =>
+            bool hasGeom = el.Geometry != null
+                && el.Geometry.Vertices.Count > 0
+                && el.Geometry.Triangles.Count > 0;
+
+            string shapeRef = "$";
+            if (hasGeom)
             {
-                u.Units.Add(model.Instances.New<IfcSIUnit>(si =>
+                int item = schema == IfcSchema.Ifc4
+                    ? WriteIfc4Mesh(w, el.Geometry!)
+                    : WriteIfc2x3Mesh(w, el.Geometry!);
+
+                string repType = schema == IfcSchema.Ifc4 ? "Tessellation" : "SurfaceModel";
+                int rep = w.Write($"IFCSHAPEREPRESENTATION({Ref(skel.Ctx)},'Body','{repType}',({Ref(item)}))");
+                int ps  = w.Write($"IFCPRODUCTDEFINITIONSHAPE($,$,({Ref(rep)}))");
+                shapeRef = Ref(ps);
+            }
+
+            int place = w.Write($"IFCLOCALPLACEMENT({Ref(skel.StoreyPlace)},{Ref(skel.Axis)})");
+
+            string guid = GetGuid(el.Id, el.Name, index);
+            string objType = string.IsNullOrEmpty(el.Category) ? "$" : Str(el.Category);
+
+            ResolveClass(schema, el.IfcType, out string ent, out int argCount, out string ninth);
+
+            int objId = argCount == 9
+                ? w.Write($"{ent}('{guid}',{Ref(skel.Owner)},{Str(el.Name)},$,{objType},{Ref(place)},{shapeRef},$,{ninth})")
+                : w.Write($"{ent}('{guid}',{Ref(skel.Owner)},{Str(el.Name)},$,{objType},{Ref(place)},{shapeRef},$)");
+
+            if (el.PropertySets != null && el.PropertySets.Count > 0)
+                RegisterPsets(w, skel.Owner, objId, el.PropertySets, psets);
+
+            return objId;
+        }
+
+        // ── geometry ─────────────────────────────────────────────────────────────
+
+        private static int WriteIfc4Mesh(StreamingStepWriter w, GeometryData geom)
+        {
+            int pl = w.Begin("IFCCARTESIANPOINTLIST3D");
+            w.Tok('(');
+            for (int i = 0; i < geom.Vertices.Count; i++)
+            {
+                var v = geom.Vertices[i];
+                if (i > 0) w.Sep();
+                w.Tok('('); w.WriteReal(v[0]); w.Sep(); w.WriteReal(v[1]); w.Sep(); w.WriteReal(v[2]); w.Tok(')');
+            }
+            w.Tok(')');
+            w.End();
+
+            int fs = w.Begin("IFCTRIANGULATEDFACESET");
+            w.RefTok(pl); w.Sep(); w.Tok("$"); w.Sep(); w.Tok("$"); w.Sep();
+            w.Tok('(');
+            for (int i = 0; i < geom.Triangles.Count; i++)
+            {
+                var t = geom.Triangles[i];
+                if (i > 0) w.Sep();
+                w.Tok('('); w.WriteIntRaw(t[0] + 1); w.Sep(); w.WriteIntRaw(t[1] + 1); w.Sep(); w.WriteIntRaw(t[2] + 1); w.Tok(')');
+            }
+            w.Tok(')'); w.Sep(); w.Tok("$");
+            w.End();
+            return fs;
+        }
+
+        private static int WriteIfc2x3Mesh(StreamingStepWriter w, GeometryData geom)
+        {
+            var ptIds = new int[geom.Vertices.Count];
+            for (int i = 0; i < geom.Vertices.Count; i++)
+            {
+                var v = geom.Vertices[i];
+                int id = w.Begin("IFCCARTESIANPOINT");
+                w.Tok('('); w.WriteReal(v[0]); w.Sep(); w.WriteReal(v[1]); w.Sep(); w.WriteReal(v[2]); w.Tok(')');
+                w.End();
+                ptIds[i] = id;
+            }
+
+            var faceIds = new int[geom.Triangles.Count];
+            for (int i = 0; i < geom.Triangles.Count; i++)
+            {
+                var t = geom.Triangles[i];
+                int loop = w.Begin("IFCPOLYLOOP");
+                w.Tok('('); w.RefTok(ptIds[t[0]]); w.Sep(); w.RefTok(ptIds[t[1]]); w.Sep(); w.RefTok(ptIds[t[2]]); w.Tok(')');
+                w.End();
+                int bound = w.Begin("IFCFACEOUTERBOUND"); w.RefTok(loop); w.Sep(); w.Tok(".T."); w.End();
+                int face  = w.Begin("IFCFACE"); w.Tok('('); w.RefTok(bound); w.Tok(')'); w.End();
+                faceIds[i] = face;
+            }
+
+            int cfs = w.Begin("IFCCONNECTEDFACESET");
+            w.Tok('(');
+            for (int i = 0; i < faceIds.Length; i++) { if (i > 0) w.Sep(); w.RefTok(faceIds[i]); }
+            w.Tok(')');
+            w.End();
+
+            int model = w.Begin("IFCFACEBASEDSURFACEMODEL"); w.Tok('('); w.RefTok(cfs); w.Tok(')'); w.End();
+            return model;
+        }
+
+        // ── class resolution ─────────────────────────────────────────────────────
+        // IfcTypeMapper returns "IfcWall" (PascalCase). IfcTypeCatalog.Reverse maps "IFCWALL" → "Wall".
+
+        private static void ResolveClass(IfcSchema schema, string ifcType,
+                                          out string entity, out int argCount, out string ninth)
+        {
+            ninth = "$";
+            string upper = (ifcType ?? "").ToUpperInvariant();
+
+            if (IfcTypeCatalog.Reverse.TryGetValue(upper, out string? friendly)
+                && IfcTypeCatalog.Catalog.TryGetValue(friendly, out var cls))
+            {
+                if (schema == IfcSchema.Ifc4)
                 {
-                    si.UnitType = IfcUnitEnum.LENGTHUNIT;
-                    si.Name = IfcSIUnitName.METRE;
-                }));
-                u.Units.Add(model.Instances.New<IfcSIUnit>(si =>
-                {
-                    si.UnitType = IfcUnitEnum.AREAUNIT;
-                    si.Name = IfcSIUnitName.SQUARE_METRE;
-                }));
-                u.Units.Add(model.Instances.New<IfcSIUnit>(si =>
-                {
-                    si.UnitType = IfcUnitEnum.VOLUMEUNIT;
-                    si.Name = IfcSIUnitName.CUBIC_METRE;
-                }));
-            });
-        }
-
-        private IfcGeometricRepresentationContext CreateGeomContext(IfcStore model)
-        {
-            return model.Instances.New<IfcGeometricRepresentationContext>(ctx =>
-            {
-                ctx.ContextType = "Model";
-                ctx.CoordinateSpaceDimension = 3;
-                ctx.Precision = 1e-5;
-                ctx.WorldCoordinateSystem = model.Instances.New<IfcAxis2Placement3D>(a =>
-                {
-                    a.Location = model.Instances.New<IfcCartesianPoint>(p => p.SetXYZ(0, 0, 0));
-                });
-            });
-        }
-
-        private IfcSite CreateSite(IfcStore model, IfcProject project)
-        {
-            var site = model.Instances.New<IfcSite>(s =>
-            {
-                s.Name = "Site";
-                s.CompositionType = IfcElementCompositionEnum.ELEMENT;
-                s.ObjectPlacement = CreatePlacement(model);
-            });
-            model.Instances.New<IfcRelAggregates>(rel =>
-            {
-                rel.RelatingObject = project;
-                rel.RelatedObjects.Add(site);
-            });
-            return site;
-        }
-
-        private IfcBuilding CreateBuilding(IfcStore model, IfcSite site)
-        {
-            var building = model.Instances.New<IfcBuilding>(b =>
-            {
-                b.Name = "Edificio";
-                b.CompositionType = IfcElementCompositionEnum.ELEMENT;
-                b.ObjectPlacement = CreatePlacement(model);
-            });
-            model.Instances.New<IfcRelAggregates>(rel =>
-            {
-                rel.RelatingObject = site;
-                rel.RelatedObjects.Add(building);
-            });
-            return building;
-        }
-
-        private IfcBuildingStorey CreateStorey(IfcStore model, IfcBuilding building)
-        {
-            var storey = model.Instances.New<IfcBuildingStorey>(s =>
-            {
-                s.Name = "Pavimento 1";
-                s.CompositionType = IfcElementCompositionEnum.ELEMENT;
-                s.ObjectPlacement = CreatePlacement(model);
-                s.Elevation = 0.0;
-            });
-            model.Instances.New<IfcRelAggregates>(rel =>
-            {
-                rel.RelatingObject = building;
-                rel.RelatedObjects.Add(storey);
-            });
-            return storey;
-        }
-
-        // -----------------------------------------------------------------------
-        // Criação do elemento IFC com propriedades e geometria
-        // -----------------------------------------------------------------------
-
-        private void CreateElement(IfcStore model, IfcBuildingStorey storey, ElementData data)
-        {
-            var element = InstantiateIfcElement(model, data.IfcType);
-            element.Name = data.Name;
-            // Deterministic GlobalId from Navisworks InstanceGuid (stable across re-exports)
-            var instanceGuid = Guid.TryParse(data.Id, out var g) ? g : Guid.NewGuid();
-            element.GlobalId = new IfcGloballyUniqueId(IfcGuid.ToIfcGuid(instanceGuid));
-            element.ObjectPlacement = CreatePlacement(model);
-
-            if (data.Geometry != null)
-                element.Representation = CreateShapeRepresentation(model, data.Geometry);
-
-            AddPropertySets(model, element, data.PropertySets);
-
-            // Relaciona ao pavimento
-            model.Instances.New<IfcRelContainedInSpatialStructure>(rel =>
-            {
-                rel.RelatingStructure = storey;
-                rel.RelatedElements.Add(element);
-            });
-        }
-
-        private static IfcElement InstantiateIfcElement(IfcStore model, string ifcType)
-        {
-            // Cria o tipo IFC correto com base no mapeamento
-            return ifcType switch
-            {
-                "IfcWall"                   => model.Instances.New<IfcWall>(),
-                "IfcSlab"                   => model.Instances.New<IfcSlab>(),
-                "IfcBeam"                   => model.Instances.New<IfcBeam>(),
-                "IfcColumn"                 => model.Instances.New<IfcColumn>(),
-                "IfcDoor"                   => model.Instances.New<IfcDoor>(),
-                "IfcWindow"                 => model.Instances.New<IfcWindow>(),
-                "IfcRoof"                   => model.Instances.New<IfcRoof>(),
-                "IfcStair"                  => model.Instances.New<IfcStair>(),
-                "IfcFurnishingElement"       => model.Instances.New<IfcFurnishingElement>(),
-                _                           => model.Instances.New<IfcBuildingElementProxy>(),
-            };
-        }
-
-        // -----------------------------------------------------------------------
-        // Geometria: IfcTriangulatedFaceSet (IFC4 nativo)
-        // -----------------------------------------------------------------------
-
-        private IfcProductDefinitionShape CreateShapeRepresentation(IfcStore model, GeometryData geom)
-        {
-            // Constrói a lista de pontos 3D
-            var coordList = model.Instances.New<IfcCartesianPointList3D>(cpl =>
-            {
-                foreach (var v in geom.Vertices)
-                {
-                    var row = cpl.CoordList.GetAt(cpl.CoordList.Count);
-                    row.Add(new IfcLengthMeasure(v[0]));
-                    row.Add(new IfcLengthMeasure(v[1]));
-                    row.Add(new IfcLengthMeasure(v[2]));
+                    entity = cls.Ifc4;
+                    argCount = 9;
+                    return;
                 }
-            });
-
-            // Constrói o IfcTriangulatedFaceSet
-            var faceSet = model.Instances.New<IfcTriangulatedFaceSet>(fs =>
-            {
-                fs.Coordinates = coordList;
-                fs.Closed = false;
-                foreach (var tri in geom.Triangles)
+                if (cls.Ifc2x3.Length > 0)
                 {
-                    var face = fs.CoordIndex.GetAt(fs.CoordIndex.Count);
-                    face.Add(new IfcPositiveInteger(tri[0] + 1)); // IFC usa índices 1-based
-                    face.Add(new IfcPositiveInteger(tri[1] + 1));
-                    face.Add(new IfcPositiveInteger(tri[2] + 1));
+                    entity   = cls.Ifc2x3;
+                    argCount = cls.Args2x3 > 0 ? cls.Args2x3 : 8;
+                    return;
                 }
-            });
+            }
 
-            var context = model.Instances.OfType<IfcGeometricRepresentationContext>().First();
-
-            var shapeRep = model.Instances.New<IfcShapeRepresentation>(sr =>
-            {
-                sr.ContextOfItems = context;
-                sr.RepresentationIdentifier = "Body";
-                sr.RepresentationType = "Tessellation";
-                sr.Items.Add(faceSet);
-            });
-
-            return model.Instances.New<IfcProductDefinitionShape>(pds =>
-                pds.Representations.Add(shapeRep));
+            entity   = "IFCBUILDINGELEMENTPROXY";
+            argCount = 9;
         }
 
-        // -----------------------------------------------------------------------
-        // Propriedades: IfcPropertySet → IfcRelDefinesByProperties
-        // -----------------------------------------------------------------------
+        // ── Pset dedup (FNV-1a 64-bit, same as BIMCamel) ─────────────────────────
 
-        private static void AddPropertySets(
-            IfcStore model,
-            IfcElement element,
-            Dictionary<string, Dictionary<string, string>> propertySets)
+        private sealed class PsetDedup
         {
-            foreach (var psetKvp in propertySets)
-            {
-                var psetName = psetKvp.Key;
-                var props    = psetKvp.Value;
+            public readonly Dictionary<long, int> ByHash  = new();
+            public readonly Dictionary<int, List<int>> Members = new();
+        }
 
-                var pset = model.Instances.New<IfcPropertySet>(ps =>
+        private static void RegisterPsets(StreamingStepWriter w, int owner, int objId,
+            Dictionary<string, Dictionary<string, string>> propertySets, PsetDedup d)
+        {
+            foreach (var psetKv in propertySets)
+            {
+                var psetName = psetKv.Key;
+                var props    = psetKv.Value;
+                if (props.Count == 0) continue;
+
+                long h = HashPset(psetName, props);
+                if (!d.ByHash.TryGetValue(h, out int psetId))
                 {
-                    ps.Name = psetName;
-                    foreach (var propKvp in props)
+                    var propIds = new List<int>(props.Count);
+                    foreach (var propKv in props)
                     {
-                        var propName  = propKvp.Key;
-                        var propValue = propKvp.Value;
-                        ps.HasProperties.Add(
-                            model.Instances.New<IfcPropertySingleValue>(pv =>
-                            {
-                                pv.Name = propName;
-                                pv.NominalValue = new IfcLabel(propValue);
-                            }));
+                        int pv = w.Begin("IFCPROPERTYSINGLEVALUE");
+                        w.WriteStr(propKv.Key); w.Sep(); w.Tok("$"); w.Sep();
+                        w.Tok("IFCTEXT("); w.WriteStr(string.IsNullOrEmpty(propKv.Value) ? " " : propKv.Value); w.Tok(")");
+                        w.Sep(); w.Tok("$");
+                        w.End();
+                        propIds.Add(pv);
                     }
-                });
 
-                model.Instances.New<IfcRelDefinesByProperties>(rel =>
-                {
-                    rel.RelatingPropertyDefinition = pset;
-                    rel.RelatedObjects.Add(element);
-                });
+                    psetId = w.Begin("IFCPROPERTYSET");
+                    w.Tok(G()); w.Sep(); w.RefTok(owner); w.Sep(); w.WriteStr(psetName); w.Sep(); w.Tok("$"); w.Sep();
+                    w.Tok("(");
+                    for (int i = 0; i < propIds.Count; i++) { if (i > 0) w.Sep(); w.RefTok(propIds[i]); }
+                    w.Tok(")");
+                    w.End();
+                    d.ByHash[h] = psetId;
+                }
+
+                if (!d.Members.TryGetValue(psetId, out var mem)) { mem = new List<int>(); d.Members[psetId] = mem; }
+                mem.Add(objId);
             }
         }
 
-        // -----------------------------------------------------------------------
-        // Helpers de placement
-        // -----------------------------------------------------------------------
-
-        private static IfcLocalPlacement CreatePlacement(IfcStore model)
+        private static void WriteDeferredPsets(StreamingStepWriter w, int owner, PsetDedup d)
         {
-            return model.Instances.New<IfcLocalPlacement>(lp =>
+            foreach (var kv in d.Members)
+                w.Write($"IFCRELDEFINESBYPROPERTIES({G()},{Ref(owner)},$,$,({Join(kv.Value)}),{Ref(kv.Key)})");
+        }
+
+        private static long HashPset(string psetName, Dictionary<string, string> props)
+        {
+            unchecked
             {
-                lp.RelativePlacement = model.Instances.New<IfcAxis2Placement3D>(a =>
+                ulong h = 14695981039346656037UL;
+                void Mix(string? s)
                 {
-                    a.Location = model.Instances.New<IfcCartesianPoint>(p => p.SetXYZ(0, 0, 0));
-                });
-            });
+                    if (s != null) foreach (char c in s) { h ^= c; h *= 1099511628211UL; }
+                    h ^= 0x1FUL; h *= 1099511628211UL;
+                }
+                Mix(psetName);
+                foreach (var kv in props) { Mix(kv.Key); Mix(kv.Value); }
+                return (long)h;
+            }
+        }
+
+        // ── helpers ──────────────────────────────────────────────────────────────
+
+        private static string GetGuid(string? idStr, string name, int index)
+        {
+            if (!string.IsNullOrEmpty(idStr) && Guid.TryParse(idStr, out var g) && g != Guid.Empty)
+                return IfcGuid.ToIfcGuid(g);
+            using var md5 = MD5.Create();
+            return IfcGuid.ToIfcGuid(new Guid(md5.ComputeHash(Encoding.UTF8.GetBytes($"{name}#{index}"))));
+        }
+
+        private static string G() => "'" + IfcGuid.ToIfcGuid(Guid.NewGuid()) + "'";
+        private static string Ref(int id) => "#" + id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        private static string Join(List<int> ids)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < ids.Count; i++) { if (i > 0) sb.Append(','); sb.Append(Ref(ids[i])); }
+            return sb.ToString();
         }
     }
 }

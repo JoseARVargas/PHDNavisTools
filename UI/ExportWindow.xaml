@@ -1,7 +1,7 @@
 <Window x:Class="NavisworksIfcExporter.UI.ExportWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Exportar IFC 4 — Navisworks"
+        Title="Exportar IFC — Navisworks"
         Width="520" SizeToContent="Height"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
@@ -60,6 +60,44 @@
                          Height="24" VerticalContentAlignment="Center" Text="PHD"/>
             </Grid>
         </GroupBox>
+
+        <!-- Configurações IFC -->
+        <GroupBox Header="Configurações IFC">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Grid.Column="0" Content="Versão IFC:" VerticalAlignment="Center"/>
+                <ComboBox x:Name="CmbSchema" Grid.Row="0" Grid.Column="1" Height="24" Margin="0,2" SelectedIndex="0">
+                    <ComboBoxItem Content="IFC4 (recomendado)"/>
+                    <ComboBoxItem Content="IFC2x3"/>
+                </ComboBox>
+                <Label Grid.Row="1" Grid.Column="0" Content="Qualidade:" VerticalAlignment="Center"/>
+                <ComboBox x:Name="CmbQuality" Grid.Row="1" Grid.Column="1" Height="24" Margin="0,2" SelectedIndex="0">
+                    <ComboBoxItem Content="Balanceado — 0,1 mm (padrão)"/>
+                    <ComboBoxItem Content="Arquivo menor — 1 mm"/>
+                    <ComboBoxItem Content="Alta precisão — 0,001 mm"/>
+                </ComboBox>
+            </Grid>
+        </GroupBox>
+
+        <!-- Barra de progresso -->
+        <Grid x:Name="PanelProgress" Visibility="Collapsed" Margin="0,2,0,2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="72"/>
+            </Grid.ColumnDefinitions>
+            <ProgressBar x:Name="PrgBar" Height="18" IsIndeterminate="True"
+                         Background="#EEE" Foreground="#1976D2"/>
+            <TextBlock x:Name="TxtPct" Grid.Column="1" Text="Aguarde..."
+                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                       FontWeight="SemiBold" FontSize="11"/>
+        </Grid>
 
         <!-- Log / Progresso -->
         <GroupBox Header="Progresso">

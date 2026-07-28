@@ -17,6 +17,9 @@ namespace NavisworksIfcExporter.Core
         public List<MappingRule> MappingRules { get; set; } = new List<MappingRule>();
         // When set, overrides SelectionOnly and exports exactly these items
         public IEnumerable<ModelItem>? ExplicitItems { get; set; }
+        // IFC schema and coordinate precision
+        public IfcSchema Schema        { get; set; } = IfcSchema.Ifc4;
+        public int CoordDecimals       { get; set; } = 4; // 4 = Balanced (0.1 mm)
     }
 
     public class ExportService
@@ -50,9 +53,10 @@ namespace NavisworksIfcExporter.Core
             traverser.ProgressChanged += (_, msg) => Report(msg);
             var elements  = traverser.Traverse(sourceItems, options.IncludeHidden, options.ExportGeometry);
 
-            Report("Escrevendo arquivo IFC 4...");
+            string schemaLabel = options.Schema == IfcSchema.Ifc2x3 ? "IFC2x3" : "IFC4";
+            Report($"Escrevendo arquivo {schemaLabel}...");
             var writer = new IfcWriter(options.AuthorName, options.OrganizationName);
-            writer.Write(elements, options.OutputPath);
+            writer.Write(elements, options.OutputPath, options.Schema, options.CoordDecimals);
 
             Report($"Concluído. Arquivo salvo em: {options.OutputPath}");
         }

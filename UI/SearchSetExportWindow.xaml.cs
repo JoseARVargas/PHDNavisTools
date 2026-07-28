@@ -136,13 +136,16 @@ namespace NavisworksIfcExporter.UI
 
         private void BtnBrowse_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new SaveFileDialog
+            var dlg = new System.Windows.Forms.FolderBrowserDialog
             {
-                Title      = "Salvar arquivo IFC",
-                Filter     = "IFC Files (*.ifc)|*.ifc",
-                DefaultExt = ".ifc",
+                Description      = "Escolha a pasta de destino para os arquivos IFC",
+                ShowNewFolderButton = true,
             };
-            if (dialog.ShowDialog() == true) TxtOutputPath.Text = dialog.FileName;
+            if (!string.IsNullOrWhiteSpace(TxtOutputPath.Text))
+                dlg.SelectedPath = TxtOutputPath.Text;
+
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                TxtOutputPath.Text = dlg.SelectedPath;
         }
 
         private void BtnMapping_Click(object sender, RoutedEventArgs e)
@@ -153,7 +156,14 @@ namespace NavisworksIfcExporter.UI
 
         private async void BtnExport_Click(object sender, RoutedEventArgs e)
         {
-            // Collect all checked leaf nodes
+            var folder = TxtOutputPath.Text.Trim();
+            if (string.IsNullOrWhiteSpace(folder) || !System.IO.Directory.Exists(folder))
+            {
+                MessageBox.Show("Selecione uma pasta de destino válida.", "Aviso",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var checkedSets = CollectLeaves(_rootNodes)
                 .Where(n => n.IsChecked == true && n.Item != null)
                 .Select(n => n.Item!)
@@ -166,80 +176,116 @@ namespace NavisworksIfcExporter.UI
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(TxtOutputPath.Text))
-            {
-                MessageBox.Show("Selecione o caminho do arquivo de saída.", "Aviso",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            BtnExport.IsEnabled = false;
+            BtnExport.IsEnabled      = false;
             TxtLog.Clear();
+            PanelProgress.Visibility = Visibility.Visible;
+            PrgBar.Value             = 0;
+            TxtPct.Text              = $"0/{checkedSets.Count}";
+
+            var schema        = CmbSchema.SelectedIndex == 1 ? IfcSchema.Ifc2x3 : IfcSchema.Ifc4;
+            var coordDecimals = CmbQuality.SelectedIndex switch { 1 => 3, 2 => 6, _ => 4 };
 
             var doc = Autodesk.Navisworks.Api.Application.ActiveDocument!;
-            AppendLog($"Resolvendo {checkedSets.Count} set(s)...");
+            string docName = "Modelo";
+            try { docName = System.IO.Path.GetFileNameWithoutExtension(doc.FileName) ?? "Modelo"; } catch { }
 
-            // Resolve all sets on the UI/STA thread before going async
-            List<ModelItem> items;
-            try
+            AppendLog($"Documento: {docName}");
+            AppendLog($"Pasta: {folder}");
+            AppendLog($"Sets selecionados: {checkedSets.Count}");
+
+            int done   = 0;
+            int errors = 0;
+
+            foreach (var set in checkedSets)
             {
-                var seen = new HashSet<Guid>();
-                var merged = new List<ModelItem>();
-                foreach (var set in checkedSets)
+                var setName    = set.DisplayName;
+                var safeName   = SanitizeFileName(setName);
+                var outputPath = System.IO.Path.Combine(folder, $"{docName} {safeName}.ifc");
+
+                AppendLog($"\n[{done + 1}/{checkedSets.Count}] {setName}");
+                AppendLog($"  Saída: {outputPath}");
+
+                // Resolve items on the STA thread.
+                // Fix: use HashSet<ModelItem> (reference equality) instead of HashSet<Guid>.
+                // InstanceGuid is Guid.Empty for all non-Revit items, causing every item
+                // after the first to be silently dropped with HashSet<Guid>.
+                List<ModelItem> items;
+                try
                 {
+                    var seen   = new HashSet<ModelItem>();
+                    var merged = new List<ModelItem>();
                     foreach (var item in set.GetSelectedItems(doc))
-                    {
-                        if (seen.Add(item.InstanceGuid))
-                            merged.Add(item);
-                    }
+                        if (seen.Add(item)) merged.Add(item);
+                    items = merged;
+                    AppendLog($"  Itens: {items.Count}");
                 }
-                items = merged;
-                AppendLog($"{items.Count} elemento(s) único(s) encontrado(s).");
-            }
-            catch (Exception ex)
-            {
-                AppendLog($"ERRO ao resolver sets: {ex.Message}");
-                BtnExport.IsEnabled = true;
-                return;
-            }
-
-            if (items.Count == 0)
-            {
-                MessageBox.Show("Os sets selecionados não retornaram nenhum elemento.", "Aviso",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                BtnExport.IsEnabled = true;
-                return;
-            }
-
-            var options = new ExportOptions
-            {
-                OutputPath       = TxtOutputPath.Text,
-                ExportGeometry   = ChkGeometry.IsChecked == true,
-                IncludeHidden    = ChkHidden.IsChecked == true,
-                AuthorName       = TxtAuthor.Text,
-                OrganizationName = TxtOrganization.Text,
-                MappingRules     = _mappingRules,
-                ExplicitItems    = items,
-            };
-
-            try
-            {
-                await Task.Run(() =>
+                catch (Exception ex)
                 {
-                    var service = new ExportService();
-                    service.ProgressChanged += (_, msg) => Dispatcher.Invoke(() => AppendLog(msg));
-                    service.Export(options);
-                });
-                MessageBox.Show("Exportação concluída com sucesso!", "Sucesso",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                    errors++;
+                    AppendLog($"  ERRO ao resolver set: {ex.Message}");
+                    done++;
+                    continue;
+                }
+
+                if (items.Count == 0)
+                {
+                    AppendLog("  Set vazio — ignorado.");
+                    done++;
+                    continue;
+                }
+
+                var options = new ExportOptions
+                {
+                    OutputPath       = outputPath,
+                    ExportGeometry   = ChkGeometry.IsChecked == true,
+                    IncludeHidden    = ChkHidden.IsChecked == true,
+                    AuthorName       = TxtAuthor.Text,
+                    OrganizationName = TxtOrganization.Text,
+                    MappingRules     = _mappingRules,
+                    ExplicitItems    = items,
+                    Schema           = schema,
+                    CoordDecimals    = coordDecimals,
+                };
+
+                try
+                {
+                    await Task.Run(() =>
+                    {
+                        var service = new ExportService();
+                        service.ProgressChanged += (_, msg) => Dispatcher.Invoke(() => AppendLog($"  {msg}"));
+                        service.Export(options);
+                    });
+                    AppendLog($"  OK — {outputPath}");
+                }
+                catch (Exception ex)
+                {
+                    errors++;
+                    AppendLog($"  ERRO: {ex.Message}");
+                    var cont = MessageBox.Show(
+                        $"Erro ao exportar '{setName}':\n{ex.Message}\n\nContinuar com os próximos sets?",
+                        "Erro", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (cont == MessageBoxResult.No) break;
+                }
+
+                done++;
+                PrgBar.Value = done * 100.0 / checkedSets.Count;
+                TxtPct.Text  = $"{done}/{checkedSets.Count}";
             }
-            catch (Exception ex)
-            {
-                AppendLog($"ERRO: {ex.Message}");
-                MessageBox.Show($"Erro durante a exportação:\n{ex.Message}", "Erro",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally { BtnExport.IsEnabled = true; }
+
+            var summary = errors == 0
+                ? $"Concluído: {done}/{checkedSets.Count} set(s) exportado(s)."
+                : $"Concluído com erros: {done - errors}/{checkedSets.Count} ok, {errors} erro(s).";
+            AppendLog($"\n{summary}");
+            BtnExport.IsEnabled = true;
+
+            if (done > errors)
+                System.Diagnostics.Process.Start("explorer.exe", $"\"{folder}\"");
+        }
+
+        private static string SanitizeFileName(string name)
+        {
+            var invalid = System.IO.Path.GetInvalidFileNameChars();
+            return new string(name.Select(c => invalid.Contains(c) ? '_' : c).ToArray()).Trim();
         }
 
         private void BtnClose_Click(object sender, RoutedEventArgs e) => Close();

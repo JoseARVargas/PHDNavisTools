@@ -1,35 +1,48 @@
+using System.Windows.Forms;
+using System.Windows.Forms.Integration;
 using Autodesk.Navisworks.Api.Plugins;
 using NavisworksIfcExporter.UI;
 
 namespace NavisworksIfcExporter
 {
-    [Plugin("ExportIfc", "PHD",
-        DisplayName = "Exportar IFC 4",
-        ToolTip     = "Exporta o modelo para IFC 4 com propriedades e geometria")]
+    // ── Unified IFC Exporter DockPane ──────────────────────────────────────────
+
+    [Plugin("IfcExporterPane", "PHD", DisplayName = "Exportar IFC — PHD")]
+    [DockPanePlugin(480, 650, FixedSize = false)]
+    public class IfcExporterDockPane : DockPanePlugin
+    {
+        public override Control CreateControlPane()
+        {
+            return new ElementHost
+            {
+                Dock = DockStyle.Fill,
+                Child = new IfcExporterView(),
+            };
+        }
+
+        public override void DestroyControlPane(Control pane) => pane?.Dispose();
+    }
+
+    [Plugin("IfcExporterCommand", "PHD",
+        DisplayName = "Exportar IFC",
+        ToolTip     = "Abre o painel de exportação IFC (IFC4 / IFC2x3, modelo completo / seleção / sets)")]
     [AddInPlugin(AddInLocation.None)]
-    public class ExportIfcPlugin : AddInPlugin
+    public class IfcExporterCommandPlugin : AddInPlugin
     {
         public override int Execute(params string[] parameters)
         {
-            var window = new ExportWindow();
-            window.ShowDialog();
+            var record = Autodesk.Navisworks.Api.Application.Plugins.FindPlugin("IfcExporterPane.PHD");
+            if (record is DockPanePluginRecord dr)
+            {
+                if (!dr.IsLoaded) dr.LoadPlugin();
+                if (dr.LoadedPlugin is DockPanePlugin pane)
+                    pane.Visible = !pane.Visible;
+            }
             return 0;
         }
     }
 
-    [Plugin("ExportIfcSearchSet", "PHD",
-        DisplayName = "Exportar IFC por Search Set",
-        ToolTip     = "Exporta um search set ou selection set específico para IFC 4")]
-    [AddInPlugin(AddInLocation.None)]
-    public class ExportIfcSearchSetPlugin : AddInPlugin
-    {
-        public override int Execute(params string[] parameters)
-        {
-            var window = new SearchSetExportWindow();
-            window.ShowDialog();
-            return 0;
-        }
-    }
+    // ── Remaining commands ─────────────────────────────────────────────────────
 
     [Plugin("ExportClashCsv", "PHD",
         DisplayName = "Exportar Clashes CSV",
@@ -40,19 +53,6 @@ namespace NavisworksIfcExporter
         public override int Execute(params string[] parameters)
         {
             new ClashExportWindow().ShowDialog();
-            return 0;
-        }
-    }
-
-    [Plugin("ExportIfcSelection", "PHD",
-        DisplayName = "Exportar IFC — Seleção",
-        ToolTip     = "Exporta para IFC apenas os elementos selecionados na viewport")]
-    [AddInPlugin(AddInLocation.None)]
-    public class ExportIfcSelectionPlugin : AddInPlugin
-    {
-        public override int Execute(params string[] parameters)
-        {
-            new ExportWindow(selectionOnly: true).ShowDialog();
             return 0;
         }
     }
@@ -132,6 +132,32 @@ namespace NavisworksIfcExporter
         public override int Execute(params string[] parameters)
         {
             new UI.IdsWindow().ShowDialog();
+            return 0;
+        }
+    }
+
+    [Plugin("WriteProperties", "PHD",
+        DisplayName = "Escrever Propriedades",
+        ToolTip     = "Grava propriedades customizadas nos elementos selecionados (abas persistidas no NWD/NWF)")]
+    [AddInPlugin(AddInLocation.None)]
+    public class WritePropertiesPlugin : AddInPlugin
+    {
+        public override int Execute(params string[] parameters)
+        {
+            new UI.WritePropertiesWindow().ShowDialog();
+            return 0;
+        }
+    }
+
+    [Plugin("ExcelImport", "PHD",
+        DisplayName = "Importar Dados Excel",
+        ToolTip     = "Enriquece o modelo com dados de uma planilha Excel via correspondência por propriedade")]
+    [AddInPlugin(AddInLocation.None)]
+    public class ExcelImportPlugin : AddInPlugin
+    {
+        public override int Execute(params string[] parameters)
+        {
+            new UI.ExcelImportWindow().ShowDialog();
             return 0;
         }
     }

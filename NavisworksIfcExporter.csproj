@@ -33,11 +33,10 @@
     <Resource Include="Resources\auto_attach_qto_32x32.png"/>
     <Resource Include="Resources\realcar_selecao_32x32.png"/>
     <Resource Include="Resources\restaurar_aparencia_32x32.png"/>
+    <Resource Include="Resources\escrever_propriedades_32x32.png" Condition="Exists('Resources\escrever_propriedades_32x32.png')"/>
   </ItemGroup>
 
   <ItemGroup>
-    <!-- xBIM para escrita do IFC 4 -->
-    <PackageReference Include="Xbim.Essentials" Version="5.1.341" />
     <!-- Leitura de Excel sem dependência do Office -->
     <PackageReference Include="ExcelDataReader" Version="3.7.0"/>
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0"/>
@@ -53,6 +52,11 @@
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(PluginDir)" SkipUnchangedFiles="true" />
     <Message Text="Plugin copiado para $(PluginDir)" Importance="high" />
   </Target>
+
+  <!-- Microsoft.CSharp é necessário para 'dynamic' em projetos SDK-style net48 -->
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
 
   <!-- Referências ao Navisworks (não copiadas para output) -->
   <ItemGroup>

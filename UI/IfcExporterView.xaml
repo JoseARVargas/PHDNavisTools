@@ -1,0 +1,394 @@
+<UserControl x:Class="NavisworksIfcExporter.UI.IfcExporterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="Segoe UI" FontSize="12">
+
+    <UserControl.Resources>
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="Padding" Value="8,4"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Margin" Value="0,3"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="RadioButton">
+            <Setter Property="Margin" Value="0,3"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ══════════════════════ TABS ══════════════════════ -->
+        <TabControl Grid.Row="0" BorderThickness="0">
+
+            <!-- ===== EXPORT ===== -->
+            <TabItem Header="Export">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10,8,10,4">
+                    <StackPanel>
+
+                        <!-- SCOPE -->
+                        <GroupBox Header="Escopo de exportação">
+                            <StackPanel>
+                                <RadioButton x:Name="RbFullModel" Content="Modelo completo"
+                                             GroupName="Scope" IsChecked="True" Checked="Scope_Checked"/>
+                                <RadioButton x:Name="RbSelection" Content="Seleção atual (viewport)"
+                                             GroupName="Scope" Checked="Scope_Checked"/>
+
+                                <!-- Single set row -->
+                                <Grid Margin="0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <RadioButton x:Name="RbSingleSet" Grid.Column="0"
+                                                 Content="Set único:" GroupName="Scope"
+                                                 VerticalAlignment="Center" Checked="Scope_Checked"/>
+                                    <ComboBox x:Name="CmbSingleSet" Grid.Column="1" Height="24"
+                                              Margin="4,0,0,0" IsEnabled="False"
+                                              DisplayMemberPath="Name" VerticalContentAlignment="Center"/>
+                                </Grid>
+
+                                <!-- Batch -->
+                                <RadioButton x:Name="RbBatch" Content="Batch (múltiplos sets)"
+                                             GroupName="Scope" Checked="Scope_Checked"/>
+                                <StackPanel x:Name="PanelBatch" Visibility="Collapsed" Margin="0,5,0,0">
+                                    <Border BorderBrush="#CCC" BorderThickness="1" MaxHeight="120">
+                                        <ListBox x:Name="LstBatch" BorderThickness="0" Background="#FAFAFA"
+                                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                            <ListBox.ItemContainerStyle>
+                                                <Style TargetType="ListBoxItem">
+                                                    <Setter Property="Padding" Value="0"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="ListBoxItem">
+                                                                <ContentPresenter/>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </ListBox.ItemContainerStyle>
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox Content="{Binding Name}"
+                                                              IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                                              Margin="4,2"/>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </Border>
+                                    <WrapPanel Margin="0,5,0,0">
+                                        <Button Content="Todos" Height="22" Padding="8,0" Margin="0,0,4,0" Click="BtnBatchAll_Click"/>
+                                        <Button Content="Nenhum" Height="22" Padding="8,0" Click="BtnBatchNone_Click"/>
+                                    </WrapPanel>
+                                </StackPanel>
+
+                                <Button x:Name="BtnRefreshSets" Content="⟳  Atualizar sets" Height="22"
+                                        Padding="8,0" HorizontalAlignment="Left" Margin="0,6,0,0"
+                                        Click="BtnRefreshSets_Click"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- OUTPUT -->
+                        <GroupBox x:Name="GrpOutput" Header="Arquivo de saída">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="TxtOutputPath" Grid.Column="0" Margin="0,0,4,0"
+                                         IsReadOnly="True" Height="24" VerticalContentAlignment="Center"
+                                         Background="#F8F8F8"/>
+                                <Button Grid.Column="1" Content="Procurar..." Width="76" Height="24"
+                                        Click="BtnBrowse_Click"/>
+                            </Grid>
+                        </GroupBox>
+
+                        <!-- IFC CONFIG -->
+                        <GroupBox Header="Configurações IFC">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Label Grid.Row="0" Grid.Column="0" Content="Versão IFC:" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="CmbSchema" Grid.Row="0" Grid.Column="1" Height="24"
+                                          Margin="0,2" SelectedIndex="0">
+                                    <ComboBoxItem Content="IFC4 (recomendado)"/>
+                                    <ComboBoxItem Content="IFC2x3"/>
+                                </ComboBox>
+                                <Label Grid.Row="1" Grid.Column="0" Content="Qualidade:" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="CmbQuality" Grid.Row="1" Grid.Column="1" Height="24"
+                                          Margin="0,2" SelectedIndex="0">
+                                    <ComboBoxItem Content="Balanceado — 0,1 mm"/>
+                                    <ComboBoxItem Content="Arquivo menor — 1 mm"/>
+                                    <ComboBoxItem Content="Alta precisão — 0,001 mm"/>
+                                </ComboBox>
+                            </Grid>
+                        </GroupBox>
+
+                        <!-- OPTIONS -->
+                        <GroupBox Header="Opções">
+                            <StackPanel>
+                                <CheckBox x:Name="ChkGeometry"
+                                          Content="Exportar geometria 3D (tessellada)" IsChecked="True"/>
+                                <CheckBox x:Name="ChkHidden"
+                                          Content="Incluir elementos ocultos" IsChecked="False"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!-- METADATA -->
+                        <GroupBox Header="Metadados IFC">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Label Grid.Row="0" Grid.Column="0" Content="Autor:"
+                                       VerticalAlignment="Center"/>
+                                <TextBox x:Name="TxtAuthor" Grid.Row="0" Grid.Column="1"
+                                         Height="24" Margin="0,2" VerticalContentAlignment="Center"
+                                         Text="Exportador"/>
+                                <Label Grid.Row="1" Grid.Column="0" Content="Organização:"
+                                       VerticalAlignment="Center"/>
+                                <TextBox x:Name="TxtOrganization" Grid.Row="1" Grid.Column="1"
+                                         Height="24" Margin="0,2" VerticalContentAlignment="Center"
+                                         Text="PHD"/>
+                            </Grid>
+                        </GroupBox>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ===== MAPEAMENTO ===== -->
+            <TabItem Header="Mapeamento">
+                <Grid Margin="8,8,8,4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <DataGrid Grid.Row="0" x:Name="GridRules"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="True" CanUserDeleteRows="False"
+                              CanUserReorderColumns="False" CanUserResizeRows="False"
+                              CanUserSortColumns="False"
+                              SelectionMode="Extended" SelectionUnit="FullRow"
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                              RowHeight="26" FontSize="11"
+                              BorderBrush="#CCC" BorderThickness="1"
+                              VerticalScrollBarVisibility="Auto">
+
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="#F0F0F0"/>
+                                <Setter Property="Padding" Value="4,3"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="BorderBrush" Value="#CCC"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Exclude}" Value="True">
+                                        <Setter Property="Foreground" Value="#999"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Cat. origem" Width="*" MinWidth="72">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding SourcePset}" Margin="3,0"
+                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox IsEditable="True" StaysOpenOnEdit="True"
+                                                  Text="{Binding SourcePset, UpdateSourceTrigger=PropertyChanged}"
+                                                  BorderThickness="0" Height="22" VerticalContentAlignment="Center"
+                                                  Loaded="CmbSourcePset_Loaded"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Prop. origem" Width="*" MinWidth="72">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding SourceProperty}" Margin="3,0"
+                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox IsEditable="True" StaysOpenOnEdit="True"
+                                                  Text="{Binding SourceProperty, UpdateSourceTrigger=PropertyChanged}"
+                                                  Tag="{Binding SourcePset}"
+                                                  BorderThickness="0" Height="22" VerticalContentAlignment="Center"
+                                                  Loaded="CmbSourceProperty_Loaded"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Pset destino" Width="*" MinWidth="72">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding TargetPset}" Margin="3,0"
+                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate>
+                                        <ComboBox IsEditable="True"
+                                                  Text="{Binding TargetPset, UpdateSourceTrigger=PropertyChanged}"
+                                                  BorderThickness="0" Loaded="CmbTargetPset_Loaded"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="Prop. destino"
+                                                Binding="{Binding TargetProperty, UpdateSourceTrigger=PropertyChanged}"
+                                                Width="*" MinWidth="72">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock"><Setter Property="Margin" Value="3,0"/></Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <DataGridCheckBoxColumn Header="Excluir" Binding="{Binding Exclude}" Width="52">
+                                <DataGridCheckBoxColumn.ElementStyle>
+                                    <Style TargetType="CheckBox">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridCheckBoxColumn.ElementStyle>
+                            </DataGridCheckBoxColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Mapping toolbar -->
+                    <Grid Grid.Row="1" Margin="0,5,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <WrapPanel Grid.Column="0">
+                            <Button Content="+" Width="26" Height="22" Margin="0,0,3,0"
+                                    ToolTip="Adicionar regra" Click="BtnMappingAdd_Click"/>
+                            <Button Content="−" Width="26" Height="22" Margin="0,0,3,0"
+                                    ToolTip="Remover selecionado(s)" Click="BtnMappingRemove_Click"/>
+                            <Button Content="↑" Width="26" Height="22" Margin="0,0,3,0"
+                                    ToolTip="Subir" Click="BtnMappingUp_Click"/>
+                            <Button Content="↓" Width="26" Height="22" Margin="0,0,8,0"
+                                    ToolTip="Descer" Click="BtnMappingDown_Click"/>
+                            <Button x:Name="BtnScan" Content="⟳ Escanear" Height="22" Padding="6,0"
+                                    ToolTip="Lê categorias e propriedades do modelo"
+                                    Click="BtnScan_Click"/>
+                            <TextBlock x:Name="TxtScanStatus" VerticalAlignment="Center"
+                                       Margin="6,0,0,0" FontSize="10" Foreground="#777"/>
+                        </WrapPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Content="Import…" Height="22" Padding="6,0" Margin="0,0,3,0"
+                                    Click="BtnMappingImport_Click"/>
+                            <Button Content="Export…" Height="22" Padding="6,0"
+                                    Click="BtnMappingExport_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- ===== ESTRUTURA ===== -->
+            <TabItem Header="Estrutura">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10,8,10,4">
+                    <StackPanel>
+                        <TextBlock Margin="0,0,0,8" TextWrapping="Wrap" FontSize="11" Foreground="#666"
+                                   Text="Nomes para a estrutura espacial do IFC (IfcProject, IfcSite, IfcBuilding, IfcBuildingStorey). Não afetam a geometria nem as propriedades."/>
+                        <GroupBox Header="Estrutura espacial">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="88"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Label Grid.Row="0" Grid.Column="0" Content="Projeto:"
+                                       VerticalAlignment="Center"/>
+                                <TextBox x:Name="TxtProject" Grid.Row="0" Grid.Column="1"
+                                         Height="24" Margin="0,2" VerticalContentAlignment="Center"
+                                         Text="Projeto Navisworks"/>
+                                <Label Grid.Row="1" Grid.Column="0" Content="Site:"
+                                       VerticalAlignment="Center"/>
+                                <TextBox x:Name="TxtSite" Grid.Row="1" Grid.Column="1"
+                                         Height="24" Margin="0,2" VerticalContentAlignment="Center"
+                                         Text="Site"/>
+                                <Label Grid.Row="2" Grid.Column="0" Content="Edifício:"
+                                       VerticalAlignment="Center"/>
+                                <TextBox x:Name="TxtBuilding" Grid.Row="2" Grid.Column="1"
+                                         Height="24" Margin="0,2" VerticalContentAlignment="Center"
+                                         Text="Edificio"/>
+                                <Label Grid.Row="3" Grid.Column="0" Content="Pavimento:"
+                                       VerticalAlignment="Center"/>
+                                <TextBox x:Name="TxtStorey" Grid.Row="3" Grid.Column="1"
+                                         Height="24" Margin="0,2" VerticalContentAlignment="Center"
+                                         Text="Pavimento 1"/>
+                            </Grid>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+
+        <!-- ══════════════════════ ACTION BAR ══════════════════════ -->
+        <Border Grid.Row="1" BorderBrush="#CCC" BorderThickness="0,1,0,0"
+                Background="#F5F5F5" Padding="10,8,10,10">
+            <StackPanel>
+                <!-- Progress -->
+                <Grid x:Name="PanelProgress" Visibility="Collapsed" Margin="0,0,0,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ProgressBar x:Name="PrgBar" Height="8" Minimum="0" Maximum="100" Value="0"
+                                 Background="#DDD" Foreground="#1976D2"/>
+                    <TextBlock x:Name="TxtPct" Grid.Column="1" Margin="8,0,0,0"
+                               VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold"/>
+                </Grid>
+                <!-- Log (dark console style) -->
+                <TextBox x:Name="TxtLog" Height="54" IsReadOnly="True"
+                         FontFamily="Consolas" FontSize="10" TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         Background="#1E1E1E" Foreground="#9CCA7E"
+                         Margin="0,0,0,6" BorderThickness="0" Padding="5"/>
+                <!-- Export button -->
+                <Button x:Name="BtnExport" Height="30" BorderThickness="0"
+                        Background="#1976D2" FontSize="13" FontWeight="SemiBold"
+                        Click="OnExport">
+                    <TextBlock Text="Exportar IFC" Foreground="White"/>
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
