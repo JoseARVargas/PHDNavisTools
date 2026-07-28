@@ -3,7 +3,7 @@
 
 #define AppName       "PHD Navisworks Plugin"
 #define AppPublisher  "PHD Eng. Digital"
-#define AppVersion    "1.0.1"
+#define AppVersion    "1.1.0"
 #define AppId         "{B7C4D2E1-5F3A-4B8C-9D1E-2A6F7B3C4D5E}"
 #define BuildDir      "..\bin\Release\net48"
 #define NavisYear     "2026"
@@ -55,37 +55,11 @@ english.WelcomeLabel2=This will install [name/ver] on your computer.%n%nThe plug
 
 [Files]
 ; Plugin principal
-Source: "{#BuildDir}\NavisworksIfcExporter.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#BuildDir}\NavisworksIfcExporter.dll";   DestDir: "{app}"; Flags: ignoreversion
 
-; Dependências xBIM (IFC)
-Source: "{#BuildDir}\Xbim.Common.dll";            DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Xbim.Ifc.dll";               DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Xbim.Ifc2x3.dll";            DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Xbim.Ifc4.dll";              DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Xbim.IO.MemoryModel.dll";    DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Xbim.IO.Esent.dll";          DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Xbim.Tessellator.dll";       DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Esent.Interop.dll";          DestDir: "{app}"; Flags: ignoreversion
-
-; ExcelDataReader
-Source: "{#BuildDir}\ExcelDataReader.dll";        DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\ExcelDataReader.DataSet.dll"; DestDir: "{app}"; Flags: ignoreversion
-
-; Microsoft.Extensions (requerido pelo xBIM)
-Source: "{#BuildDir}\Microsoft.Extensions.Configuration.dll";             DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Microsoft.Extensions.Configuration.Abstractions.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Microsoft.Extensions.Configuration.Binder.dll";      DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Microsoft.Extensions.DependencyInjection.Abstractions.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Microsoft.Extensions.Logging.dll";                   DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Microsoft.Extensions.Logging.Abstractions.dll";      DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Microsoft.Extensions.Options.dll";                   DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\Microsoft.Extensions.Primitives.dll";                DestDir: "{app}"; Flags: ignoreversion
-
-; Backports .NET para .NET 4.8
-Source: "{#BuildDir}\System.Buffers.dll";                         DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\System.Memory.dll";                          DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\System.Numerics.Vectors.dll";                DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BuildDir}\System.Runtime.CompilerServices.Unsafe.dll"; DestDir: "{app}"; Flags: ignoreversion
+; ExcelDataReader (leitura de planilhas sem dependência do Office)
+Source: "{#BuildDir}\ExcelDataReader.dll";          DestDir: "{app}"; Flags: ignoreversion
+Source: "{#BuildDir}\ExcelDataReader.DataSet.dll";  DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 ; Nenhum atalho — plugin integrado ao Navisworks
