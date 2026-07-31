@@ -11,9 +11,11 @@
     <LangVersion>9.0</LangVersion>
     <!-- Exclui pasta de testes da compilação do plugin principal -->
     <DefaultItemExcludes>$(DefaultItemExcludes);Tests\**</DefaultItemExcludes>
-    <!-- Detecta automaticamente Navisworks 2025 ou 2026; sobrescreva com -p:NavisworksDir="..." -->
-    <NavisworksDir Condition="'$(NavisworksDir)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2026')">C:\Program Files\Autodesk\Navisworks Manage 2026</NavisworksDir>
-    <NavisworksDir Condition="'$(NavisworksDir)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2025')">C:\Program Files\Autodesk\Navisworks Manage 2025</NavisworksDir>
+    <!-- Detecta automaticamente Navisworks 2025–2027; sobrescreva com -p:NavisworksDir="..." -->
+    <!-- Checa a presença do DLL de API (não só a pasta) e prefere a mais antiga para max compatibilidade -->
+    <NavisworksDir Condition="'$(NavisworksDir)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2025\Autodesk.Navisworks.Api.dll')">C:\Program Files\Autodesk\Navisworks Manage 2025</NavisworksDir>
+    <NavisworksDir Condition="'$(NavisworksDir)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2026\Autodesk.Navisworks.Api.dll')">C:\Program Files\Autodesk\Navisworks Manage 2026</NavisworksDir>
+    <NavisworksDir Condition="'$(NavisworksDir)' == '' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2027\Autodesk.Navisworks.Api.dll')">C:\Program Files\Autodesk\Navisworks Manage 2027</NavisworksDir>
   </PropertyGroup>
 
   <!-- Permite que o projeto de testes acesse membros internos -->
@@ -42,15 +44,35 @@
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0"/>
   </ItemGroup>
 
-  <!-- Copia o DLL para a pasta de plugins após cada build -->
-  <!-- Deploy automático só em Debug — Release é para o instalador e não deve copiar com Navisworks aberto -->
-  <Target Name="DeployToNavisworks" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+  <!-- Copia o DLL para todas as versões do Navisworks instaladas (só em Debug) -->
+  <Target Name="DeployToNavisworks2027" AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Debug' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2027')">
     <PropertyGroup>
-      <PluginDir>$(APPDATA)\Autodesk\Navisworks Manage 2026\Plugins\NavisworksIfcExporter</PluginDir>
+      <PluginDir27>$(APPDATA)\Autodesk\Navisworks Manage 2027\Plugins\NavisworksIfcExporter</PluginDir27>
     </PropertyGroup>
-    <MakeDir Directories="$(PluginDir)" Condition="!Exists('$(PluginDir)')" />
-    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(PluginDir)" SkipUnchangedFiles="true" />
-    <Message Text="Plugin copiado para $(PluginDir)" Importance="high" />
+    <MakeDir Directories="$(PluginDir27)" Condition="!Exists('$(PluginDir27)')" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(PluginDir27)" SkipUnchangedFiles="true" />
+    <Message Text="Plugin copiado para $(PluginDir27)" Importance="high" />
+  </Target>
+
+  <Target Name="DeployToNavisworks2026" AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Debug' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2026')">
+    <PropertyGroup>
+      <PluginDir26>$(APPDATA)\Autodesk\Navisworks Manage 2026\Plugins\NavisworksIfcExporter</PluginDir26>
+    </PropertyGroup>
+    <MakeDir Directories="$(PluginDir26)" Condition="!Exists('$(PluginDir26)')" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(PluginDir26)" SkipUnchangedFiles="true" />
+    <Message Text="Plugin copiado para $(PluginDir26)" Importance="high" />
+  </Target>
+
+  <Target Name="DeployToNavisworks2025" AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Debug' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2025')">
+    <PropertyGroup>
+      <PluginDir25>$(APPDATA)\Autodesk\Navisworks Manage 2025\Plugins\NavisworksIfcExporter</PluginDir25>
+    </PropertyGroup>
+    <MakeDir Directories="$(PluginDir25)" Condition="!Exists('$(PluginDir25)')" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(PluginDir25)" SkipUnchangedFiles="true" />
+    <Message Text="Plugin copiado para $(PluginDir25)" Importance="high" />
   </Target>
 
   <!-- Microsoft.CSharp é necessário para 'dynamic' em projetos SDK-style net48 -->

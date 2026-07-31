@@ -12,13 +12,31 @@ namespace NavisworksIfcExporter
         DisplayName = "PHD Ribbon Loader")]
     public class RibbonLoader : EventWatcherPlugin
     {
+        private static readonly string LogPath =
+            System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "PHD_Plugin_Log.txt");
+
+        private static void Log(string msg)
+        {
+            try { System.IO.File.AppendAllText(LogPath, $"[{DateTime.Now:HH:mm:ss}] {msg}\n"); }
+            catch { }
+        }
+
         public override void OnLoaded()
         {
-            Autodesk.Navisworks.Api.Application.GuiCreated += OnGuiCreated;
+            Log("OnLoaded chamado — plugin carregado pelo Navisworks");
+            try
+            {
+                Autodesk.Navisworks.Api.Application.GuiCreated += OnGuiCreated;
+                Log("GuiCreated registrado");
+            }
+            catch (Exception ex) { Log($"ERRO em OnLoaded: {ex}"); }
         }
 
         private void OnGuiCreated(object sender, EventArgs e)
         {
+            Log("GuiCreated disparado");
             Autodesk.Navisworks.Api.Application.GuiCreated -= OnGuiCreated;
             // Navisworks initializes NWRibbonControl after GuiCreated — defer to idle
             Dispatcher.CurrentDispatcher.BeginInvoke(
@@ -27,8 +45,18 @@ namespace NavisworksIfcExporter
         }
 
         private static System.Windows.Media.ImageSource LoadIcon(string fileName)
-            => new System.Windows.Media.Imaging.BitmapImage(
-                new Uri($"pack://application:,,,/NavisworksIfcExporter;component/Resources/{fileName}"));
+        {
+            try
+            {
+                return new System.Windows.Media.Imaging.BitmapImage(
+                    new Uri($"pack://application:,,,/NavisworksIfcExporter;component/Resources/{fileName}"));
+            }
+            catch
+            {
+                return new System.Windows.Media.Imaging.BitmapImage(
+                    new Uri("pack://application:,,,/NavisworksIfcExporter;component/Resources/verificar_propriedades_32x32.png"));
+            }
+        }
 
         private static void AddPhdTab()
         {
@@ -220,8 +248,12 @@ namespace NavisworksIfcExporter
                 tab.Panels.Add(viewPanel);
 
                 ribbon.Tabs.Add(tab);
+                Log("Aba PHD Eng. Digital adicionada com sucesso");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Log($"ERRO em AddPhdTab: {ex}");
+            }
         }
 
         public override void OnUnloading() { }

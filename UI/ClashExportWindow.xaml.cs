@@ -48,7 +48,7 @@ namespace NavisworksIfcExporter.UI
 
             try
             {
-                foreach (var test in ClashExportService.GetAllTests(doc.GetClash().TestsData.Tests))
+                foreach (var test in ClashExportService.GetAllTests(doc.GetClash().TestsData.Value.TestsRoot.Children))
                 {
                     _entries.Add(new ClashTestEntry
                     {
