@@ -212,7 +212,7 @@ namespace NavisworksIfcExporter
                     Size           = RibbonItemSize.Large,
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
-                    LargeImage     = LoadIcon("verificar_propriedades_32x32.png"),
+                    LargeImage     = LoadIcon("importar_excel_32x32.png"),
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ExcelImport.PHD")),
                 };

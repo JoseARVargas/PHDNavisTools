@@ -35,7 +35,8 @@
     <Resource Include="Resources\auto_attach_qto_32x32.png"/>
     <Resource Include="Resources\realcar_selecao_32x32.png"/>
     <Resource Include="Resources\restaurar_aparencia_32x32.png"/>
-    <Resource Include="Resources\escrever_propriedades_32x32.png" Condition="Exists('Resources\escrever_propriedades_32x32.png')"/>
+    <Resource Include="Resources\importar_excel_32x32.png"/>
+    <Resource Include="Resources\escrever_propriedades_32x32.png"/>
   </ItemGroup>
 
   <ItemGroup>
