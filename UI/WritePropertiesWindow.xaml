@@ -37,42 +37,32 @@
 
         <!-- Aba de propriedades -->
         <GroupBox Header="Aba de propriedades">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="110"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Label Grid.Row="0" Grid.Column="0" Content="Aba existente:"/>
-                <ComboBox x:Name="CmbTab" Grid.Row="0" Grid.Column="1"
-                          IsEditable="True" IsTextSearchEnabled="True"
-                          SelectionChanged="CmbTab_SelectionChanged"
-                          PreviewTextInput="CmbTab_PreviewTextInput"/>
-
-                <Label Grid.Row="1" Grid.Column="0" Content="Nova aba:"
-                       Foreground="#666" FontSize="11"/>
-                <TextBox x:Name="TxtNewTab" Grid.Row="1" Grid.Column="1"
-                         Visibility="Collapsed"/>
-            </Grid>
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Aba:"/>
+                    <ComboBox x:Name="CmbTab" Grid.Column="1"
+                              IsEditable="True" IsTextSearchEnabled="True"
+                              SelectionChanged="CmbTab_SelectionChanged"
+                              PreviewTextInput="CmbTab_PreviewTextInput"/>
+                </Grid>
+                <TextBlock Text="Selecione uma aba existente ou digite um nome para criar uma nova."
+                           FontSize="10" Foreground="#888" Margin="80,2,0,0"/>
+            </StackPanel>
         </GroupBox>
 
         <!-- Nome da propriedade -->
         <GroupBox Header="Propriedade">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="80"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Label Grid.Row="0" Grid.Column="0" Content="Nome:"/>
-                <ComboBox x:Name="CmbProperty" Grid.Row="0" Grid.Column="1"
+                <Label Grid.Column="0" Content="Nome:"/>
+                <ComboBox x:Name="CmbProperty" Grid.Column="1"
                           IsEditable="True" IsTextSearchEnabled="True"/>
             </Grid>
         </GroupBox>

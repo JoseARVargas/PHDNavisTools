@@ -37,9 +37,9 @@ namespace NavisworksIfcExporter.UI
             var doc = Autodesk.Navisworks.Api.Application.ActiveDocument;
             if (doc == null) return;
 
-            // Coleta apenas os itens folha da seleção (que possuem geometria ou propriedades)
+            // Usa os itens exatamente como selecionados, sem descer para os filhos.
+            // Propriedades são gravadas no nível que o usuário selecionou.
             _targetItems = doc.CurrentSelection.SelectedItems
-                .SelectMany(Flatten)
                 .Distinct()
                 .ToList();
 
@@ -147,7 +147,9 @@ namespace NavisworksIfcExporter.UI
             }
             catch (Exception ex)
             {
-                AppendLog($"ERRO: {ex.Message}");
+                AppendLog($"ERRO: {ex.GetType().Name}: {ex.Message}");
+                if (ex.InnerException != null)
+                    AppendLog($"  Inner: {ex.InnerException.Message}");
                 MessageBox.Show($"Falha ao gravar propriedades:\n\n{ex.Message}", "Erro",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
