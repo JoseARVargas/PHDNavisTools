@@ -1,7 +1,7 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     /// <summary>
     /// Dual-schema IFC class catalog (50+ classes). Ported from BIMCamel (MIT).

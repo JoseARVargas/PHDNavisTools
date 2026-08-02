@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +8,7 @@ using Autodesk.Navisworks.Api;
 using Autodesk.Navisworks.Api.Interop;
 using Autodesk.Navisworks.Api.Takeoff;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     public class QtoItemInfo
     {

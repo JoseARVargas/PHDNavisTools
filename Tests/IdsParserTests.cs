@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using Xunit;
-using NavisworksIfcExporter.Core;
+using PHDNavisTools.Core;
 
-namespace NavisworksIfcExporter.Tests
+namespace PHDNavisTools.Tests
 {
     public class IdsParserTests
     {

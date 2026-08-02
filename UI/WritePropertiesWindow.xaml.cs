@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using Autodesk.Navisworks.Api;
-using NavisworksIfcExporter.Core;
+using PHDNavisTools.Core;
 
-namespace NavisworksIfcExporter.UI
+namespace PHDNavisTools.UI
 {
     public partial class WritePropertiesWindow : Window
     {

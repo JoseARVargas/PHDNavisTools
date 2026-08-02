@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -9,9 +9,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using Autodesk.Navisworks.Api;
-using NavisworksIfcExporter.Core;
+using PHDNavisTools.Core;
 
-namespace NavisworksIfcExporter.UI
+namespace PHDNavisTools.UI
 {
     public partial class QtoWindow : Window
     {

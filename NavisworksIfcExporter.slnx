@@ -1,6 +1,3 @@
 <Solution>
-  <Folder Name="/Tests/">
-    <Project Path="Tests/NavisworksIfcExporter.Tests.csproj" />
-  </Folder>
-  <Project Path="NavisworksIfcExporter.csproj" />
+  <Folder Name="/Tests/" />
 </Solution>

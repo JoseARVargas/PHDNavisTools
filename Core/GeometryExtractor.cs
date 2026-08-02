@@ -1,13 +1,13 @@
-// Geometry extraction adapted from BIMCamel IFC Exporter (MIT License)
+﻿// Geometry extraction adapted from BIMCamel IFC Exporter (MIT License)
 // https://github.com/mrshoma99-rgb/bimcamel-ifc-exporter
 using System;
 using System.Collections.Generic;
 using Autodesk.Navisworks.Api;
 using Autodesk.Navisworks.Api.ComApi;
 using Autodesk.Navisworks.Api.Interop.ComApi;
-using NavisworksIfcExporter.Models;
+using PHDNavisTools.Models;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     public class GeometryExtractor
     {

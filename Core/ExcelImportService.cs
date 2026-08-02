@@ -1,13 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
 using Autodesk.Navisworks.Api;
 using ExcelDataReader;
-using NavisworksIfcExporter.Models;
+using PHDNavisTools.Models;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     public class ExcelImportService
     {

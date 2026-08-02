@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     public enum IfcSchema { Ifc4, Ifc2x3 }
 
@@ -147,7 +147,7 @@ namespace NavisworksIfcExporter.Core
             Emit("ISO-10303-21;\n");
             Emit("HEADER;\n");
             Emit("FILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');\n");
-            Emit($"FILE_NAME({Str(fileName)},'{ts}',({Str(author)}),(''),'NavisworksIfcExporter','NavisIFC','');\n");
+            Emit($"FILE_NAME({Str(fileName)},'{ts}',({Str(author)}),(''),'PHDNavisTools','NavisIFC','');\n");
             Emit($"FILE_SCHEMA(('{schemaId}'));\n");
             Emit("ENDSEC;\n");
             Emit("DATA;\n");

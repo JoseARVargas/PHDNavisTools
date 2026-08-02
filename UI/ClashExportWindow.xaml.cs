@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -9,9 +9,9 @@ using System.Windows.Controls;
 using Microsoft.Win32;
 using Autodesk.Navisworks.Api;
 using Autodesk.Navisworks.Api.Clash;
-using NavisworksIfcExporter.Core;
+using PHDNavisTools.Core;
 
-namespace NavisworksIfcExporter.UI
+namespace PHDNavisTools.UI
 {
     public partial class ClashExportWindow : Window
     {

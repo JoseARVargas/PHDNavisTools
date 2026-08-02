@@ -1,11 +1,11 @@
-// Adapted from BIMCamel IFC Exporter (MIT License)
+﻿// Adapted from BIMCamel IFC Exporter (MIT License)
 // https://github.com/mrshoma99-rgb/bimcamel-ifc-exporter
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NavisworksIfcExporter.Models;
+using PHDNavisTools.Models;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     public static class PropertyMapper
     {

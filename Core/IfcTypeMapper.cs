@@ -1,8 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Navisworks.Api;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     public static class IfcTypeMapper
     {

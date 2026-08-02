@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <OutputType>Library</OutputType>
-    <AssemblyName>NavisworksIfcExporter</AssemblyName>
-    <RootNamespace>NavisworksIfcExporter</RootNamespace>
+    <AssemblyName>PHDNavisTools</AssemblyName>
+    <RootNamespace>PHDNavisTools</RootNamespace>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
@@ -21,7 +21,7 @@
   <!-- Permite que o projeto de testes acesse membros internos -->
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>NavisworksIfcExporter.Tests</_Parameter1>
+      <_Parameter1>PHDNavisTools.Tests</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
 
@@ -49,7 +49,7 @@
   <Target Name="DeployToNavisworks2027" AfterTargets="Build"
           Condition="'$(Configuration)' == 'Debug' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2027')">
     <PropertyGroup>
-      <PluginDir27>$(APPDATA)\Autodesk\Navisworks Manage 2027\Plugins\NavisworksIfcExporter</PluginDir27>
+      <PluginDir27>$(APPDATA)\Autodesk\Navisworks Manage 2027\Plugins\PHDNavisTools</PluginDir27>
     </PropertyGroup>
     <MakeDir Directories="$(PluginDir27)" Condition="!Exists('$(PluginDir27)')" />
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(PluginDir27)" SkipUnchangedFiles="true" />
@@ -59,7 +59,7 @@
   <Target Name="DeployToNavisworks2026" AfterTargets="Build"
           Condition="'$(Configuration)' == 'Debug' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2026')">
     <PropertyGroup>
-      <PluginDir26>$(APPDATA)\Autodesk\Navisworks Manage 2026\Plugins\NavisworksIfcExporter</PluginDir26>
+      <PluginDir26>$(APPDATA)\Autodesk\Navisworks Manage 2026\Plugins\PHDNavisTools</PluginDir26>
     </PropertyGroup>
     <MakeDir Directories="$(PluginDir26)" Condition="!Exists('$(PluginDir26)')" />
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(PluginDir26)" SkipUnchangedFiles="true" />
@@ -69,7 +69,7 @@
   <Target Name="DeployToNavisworks2025" AfterTargets="Build"
           Condition="'$(Configuration)' == 'Debug' AND Exists('C:\Program Files\Autodesk\Navisworks Manage 2025')">
     <PropertyGroup>
-      <PluginDir25>$(APPDATA)\Autodesk\Navisworks Manage 2025\Plugins\NavisworksIfcExporter</PluginDir25>
+      <PluginDir25>$(APPDATA)\Autodesk\Navisworks Manage 2025\Plugins\PHDNavisTools</PluginDir25>
     </PropertyGroup>
     <MakeDir Directories="$(PluginDir25)" Condition="!Exists('$(PluginDir25)')" />
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(PluginDir25)" SkipUnchangedFiles="true" />

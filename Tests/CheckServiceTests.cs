@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
-using NavisworksIfcExporter.Core;
+using PHDNavisTools.Core;
 
-namespace NavisworksIfcExporter.Tests
+namespace PHDNavisTools.Tests
 {
     /// <summary>
     /// Testa CheckService sem instanciar nenhum tipo Navisworks:

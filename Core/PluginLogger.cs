@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     internal static class PluginLogger
     {
@@ -16,7 +16,7 @@ namespace NavisworksIfcExporter.Core
                 ? Path.Combine(devRoot, "logs")
                 : Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "Autodesk", "Navisworks 2026", "Plugins", "NavisworksIfcExporter", "logs");
+                    "Autodesk", "Navisworks 2026", "Plugins", "PHDNavisTools", "logs");
 
             try { Directory.CreateDirectory(dir); } catch { }
             _logPath = Path.Combine(dir, "plugin.log");

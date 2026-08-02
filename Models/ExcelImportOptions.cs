@@ -1,6 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace NavisworksIfcExporter.Models
+namespace PHDNavisTools.Models
 {
     public class ExcelImportOptions
     {

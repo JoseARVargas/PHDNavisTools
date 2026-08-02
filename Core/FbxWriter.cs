@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using NavisworksIfcExporter.Models;
+using PHDNavisTools.Models;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     internal static class FbxWriter
     {

@@ -1,9 +1,9 @@
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using Autodesk.Navisworks.Api.Plugins;
-using NavisworksIfcExporter.UI;
+using PHDNavisTools.UI;
 
-namespace NavisworksIfcExporter
+namespace PHDNavisTools
 {
     // ── Unified IFC Exporter DockPane ──────────────────────────────────────────
 

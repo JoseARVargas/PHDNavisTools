@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
-using NavisworksIfcExporter.Core;
-using NavisworksIfcExporter.Models;
+using PHDNavisTools.Core;
+using PHDNavisTools.Models;
 
-namespace NavisworksIfcExporter.UI
+namespace PHDNavisTools.UI
 {
     public partial class ExportWindow : Window
     {

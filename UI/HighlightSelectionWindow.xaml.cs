@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ using System.Windows.Threading;
 using Autodesk.Navisworks.Api;
 using NwColor = Autodesk.Navisworks.Api.Color;
 
-namespace NavisworksIfcExporter.UI
+namespace PHDNavisTools.UI
 {
     public partial class HighlightSelectionWindow : Window
     {

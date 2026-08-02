@@ -1,7 +1,7 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Autodesk.Navisworks.Api;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     public class PropertyExtractor
     {

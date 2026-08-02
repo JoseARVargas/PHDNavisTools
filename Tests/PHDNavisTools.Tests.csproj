@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NavisworksIfcExporter.csproj" />
+    <ProjectReference Include="..\PHDNavisTools.csproj" />
   </ItemGroup>
 
   <!-- Referências Navisworks — necessárias para compilar (resolve via ProjectReference) -->

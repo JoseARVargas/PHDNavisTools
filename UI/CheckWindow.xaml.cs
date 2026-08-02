@@ -1,13 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using NavisworksIfcExporter.Core;
+using PHDNavisTools.Core;
 
-namespace NavisworksIfcExporter.UI
+namespace PHDNavisTools.UI
 {
     public partial class CheckWindow : Window
     {
@@ -91,8 +91,8 @@ namespace NavisworksIfcExporter.UI
 
             SetProgress(true, 0);
             SetStatus("Coletando elementos do modelo...");
-            NavisworksIfcExporter.Core.PluginLogger.Clear();
-            NavisworksIfcExporter.Core.PluginLogger.Info(
+            PHDNavisTools.Core.PluginLogger.Clear();
+            PHDNavisTools.Core.PluginLogger.Info(
                 $"Check iniciado — Regras: {_rules.Count}  SomenteErros: {ChkOnlyFailures.IsChecked}");
             await Dispatcher.Yield(DispatcherPriority.Background);
 
@@ -109,7 +109,7 @@ namespace NavisworksIfcExporter.UI
 
                 // Fase 1: coletar itens geométricos
                 List<(Autodesk.Navisworks.Api.ModelItem, string)> allItems;
-                using (NavisworksIfcExporter.Core.PluginLogger.Perf("Fase1_ColetarItens"))
+                using (PHDNavisTools.Core.PluginLogger.Perf("Fase1_ColetarItens"))
                     allItems = CheckService.GetGeometryItems(doc);
 
                 int total = allItems.Count;
@@ -117,7 +117,7 @@ namespace NavisworksIfcExporter.UI
                 await Dispatcher.Yield(DispatcherPriority.Background);
 
                 // Fase 2: verificar propriedades
-                using var perfCheck = NavisworksIfcExporter.Core.PluginLogger.Perf("Fase2_VerificarPropriedades", total);
+                using var perfCheck = PHDNavisTools.Core.PluginLogger.Perf("Fase2_VerificarPropriedades", total);
                 for (int i = 0; i < total; i++)
                 {
                     var (item, src) = allItems[i];
@@ -175,14 +175,14 @@ namespace NavisworksIfcExporter.UI
                 }
 
                 CheckService.LogRuleStats();
-                NavisworksIfcExporter.Core.PluginLogger.Info(
+                PHDNavisTools.Core.PluginLogger.Info(
                     $"Check concluído — ✓{okTotal} ⚠{emptyTotal} ✗{missingTotal}  ({pctGlobal}% correto)");
                 SetStatus(summary);
                 BtnExport.IsEnabled = results.Count > 0;
             }
             catch (Exception ex)
             {
-                NavisworksIfcExporter.Core.PluginLogger.Error("Check falhou", ex);
+                PHDNavisTools.Core.PluginLogger.Error("Check falhou", ex);
                 SetStatus($"ERRO: {ex.Message}");
                 MessageBox.Show(ex.Message, "Erro na verificação",
                     MessageBoxButton.OK, MessageBoxImage.Error);

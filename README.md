@@ -1,4 +1,4 @@
-# PHD Eng. Digital — Navisworks Plugin
+﻿# PHD Eng. Digital — Navisworks Plugin
 
 Plugin para **Autodesk Navisworks Manage / Simulate 2026** desenvolvido pela PHD Eng. Digital.  
 Adiciona uma aba **"PHD Eng. Digital"** ao ribbon do Navisworks com seis painéis de ferramentas para exportação, verificação e quantificação de modelos BIM.
@@ -14,7 +14,7 @@ Adiciona uma aba **"PHD Eng. Digital"** ao ribbon do Navisworks com seis painéi
 
 O instalador copia os arquivos para:
 ```
-%AppData%\Autodesk\Navisworks 2026\Plugins\NavisworksIfcExporter\
+%AppData%\Autodesk\Navisworks 2026\Plugins\PHDNavisTools\
 ```
 
 ---
@@ -228,7 +228,7 @@ dotnet build -c Release
 
 O build copia automaticamente o DLL para:
 ```
-%AppData%\Autodesk\Navisworks 2026\Plugins\NavisworksIfcExporter\
+%AppData%\Autodesk\Navisworks 2026\Plugins\PHDNavisTools\
 ```
 
 ### Rodar os testes
@@ -251,7 +251,7 @@ cd installer
 
 ## Testes automatizados
 
-O projeto `Tests/NavisworksIfcExporter.Tests.csproj` (xUnit 2.6, .NET 4.8) cobre a camada de lógica pura do plugin — sem necessidade de Navisworks em execução.
+O projeto `Tests/PHDNavisTools.Tests.csproj` (xUnit 2.6, .NET 4.8) cobre a camada de lógica pura do plugin — sem necessidade de Navisworks em execução.
 
 ### O que é testado
 
@@ -288,9 +288,9 @@ Os arquivos em `Tests/TestData/` cobrem os cenários principais:
 ## Estrutura do projeto
 
 ```
-NavisworksIfcExporter.sln
+PHDNavisTools.sln
 │
-├── NavisworksIfcExporter.csproj     # Plugin principal
+├── PHDNavisTools.csproj     # Plugin principal
 │   ├── Plugin.cs                    # Registro de todos os AddInPlugins
 │   ├── RibbonLoader.cs              # Construção da aba PHD no ribbon
 │   │
@@ -324,7 +324,7 @@ NavisworksIfcExporter.sln
 │       ├── build_installer.ps1
 │       └── generate_assets.ps1
 │
-└── Tests/NavisworksIfcExporter.Tests.csproj   # Testes unitários
+└── Tests/PHDNavisTools.Tests.csproj   # Testes unitários
     ├── IdsValueTests.cs
     ├── IdsParserTests.cs
     ├── IdsServiceEvalTests.cs

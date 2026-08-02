@@ -1,9 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using NavisworksIfcExporter.Core;
+using PHDNavisTools.Core;
 
-namespace NavisworksIfcExporter.Tests
+namespace PHDNavisTools.Tests
 {
     /// <summary>
     /// Testa o motor de avaliação do IdsService usando caches de propriedades

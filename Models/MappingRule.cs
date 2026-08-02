@@ -1,6 +1,6 @@
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
-namespace NavisworksIfcExporter.Models
+namespace PHDNavisTools.Models
 {
     [DataContract]
     public sealed class MappingRule

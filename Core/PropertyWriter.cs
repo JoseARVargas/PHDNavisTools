@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Navisworks.Api;
 using Autodesk.Navisworks.Api.ComApi;
 using Autodesk.Navisworks.Api.Interop.ComApi;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     /// <summary>
     /// Grava propriedades customizadas em elementos do Navisworks via COM API (InwGUIPropertyNode2).

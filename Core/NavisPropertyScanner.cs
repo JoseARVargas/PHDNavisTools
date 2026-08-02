@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Navisworks.Api;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     /// <summary>
     /// Walks the active document and collects all unique property category names

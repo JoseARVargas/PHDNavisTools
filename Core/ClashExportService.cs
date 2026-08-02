@@ -1,8 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Autodesk.Navisworks.Api;
 using Autodesk.Navisworks.Api.Clash;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     // The actual CSV export pipeline (snapshot + property/GUID resolution + writer) lives in
     // UI/ClashExportWindow.xaml.cs. This class only provides the clash-tree traversal helpers

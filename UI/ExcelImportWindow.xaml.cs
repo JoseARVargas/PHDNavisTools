@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Win32;
-using NavisworksIfcExporter.Core;
-using NavisworksIfcExporter.Models;
+using PHDNavisTools.Core;
+using PHDNavisTools.Models;
 
-namespace NavisworksIfcExporter.UI
+namespace PHDNavisTools.UI
 {
     public partial class ExcelImportWindow : Window
     {

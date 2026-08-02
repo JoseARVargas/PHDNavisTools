@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -7,10 +7,10 @@ using System.Runtime.Serialization.Json;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
-using NavisworksIfcExporter.Core;
-using NavisworksIfcExporter.Models;
+using PHDNavisTools.Core;
+using PHDNavisTools.Models;
 
-namespace NavisworksIfcExporter.UI
+namespace PHDNavisTools.UI
 {
     public partial class MappingWindow : Window
     {
@@ -23,7 +23,7 @@ namespace NavisworksIfcExporter.UI
 
         private static readonly string DefaultSavePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Autodesk", "Navisworks 2026", "Plugins", "NavisworksIfcExporter", "mapping.json");
+            "Autodesk", "Navisworks 2026", "Plugins", "PHDNavisTools", "mapping.json");
 
         public MappingWindow(IEnumerable<MappingRule>? initialRules = null)
         {

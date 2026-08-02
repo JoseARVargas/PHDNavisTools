@@ -1,9 +1,9 @@
-// Adapted from BIMCamel IFC Exporter (MIT License)
+﻿// Adapted from BIMCamel IFC Exporter (MIT License)
 // https://github.com/mrshoma99-rgb/bimcamel-ifc-exporter
 using System;
 using System.Numerics;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     /// <summary>
     /// Converts a .NET Guid to the 22-character IFC GlobalId encoding (base-64 over the IFC alphabet).

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Controls;
@@ -6,9 +6,9 @@ using System.Windows.Threading;
 using Autodesk.Navisworks.Api.Plugins;
 using Autodesk.Windows;
 
-namespace NavisworksIfcExporter
+namespace PHDNavisTools
 {
-    [Plugin("NavisworksIfcExporter.Ribbon", "PHD",
+    [Plugin("PHDNavisTools.Ribbon", "PHD",
         DisplayName = "PHD Ribbon Loader")]
     public class RibbonLoader : EventWatcherPlugin
     {
@@ -49,12 +49,12 @@ namespace NavisworksIfcExporter
             try
             {
                 return new System.Windows.Media.Imaging.BitmapImage(
-                    new Uri($"pack://application:,,,/NavisworksIfcExporter;component/Resources/{fileName}"));
+                    new Uri($"pack://application:,,,/PHDNavisTools;component/Resources/{fileName}"));
             }
             catch
             {
                 return new System.Windows.Media.Imaging.BitmapImage(
-                    new Uri("pack://application:,,,/NavisworksIfcExporter;component/Resources/verificar_propriedades_32x32.png"));
+                    new Uri("pack://application:,,,/PHDNavisTools;component/Resources/verificar_propriedades_32x32.png"));
             }
         }
 

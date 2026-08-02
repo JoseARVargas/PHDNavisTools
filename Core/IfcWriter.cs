@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using NavisworksIfcExporter.Models;
-using static NavisworksIfcExporter.Core.StreamingStepWriter;
+using PHDNavisTools.Models;
+using static PHDNavisTools.Core.StreamingStepWriter;
 
-namespace NavisworksIfcExporter.Core
+namespace PHDNavisTools.Core
 {
     /// <summary>
     /// IFC4 / IFC2x3 writer built on StreamingStepWriter (no xBIM dependency).
@@ -70,7 +70,7 @@ namespace NavisworksIfcExporter.Core
             int person = w.Write($"IFCPERSON($,$,{Str(_authorName)},$,$,$,$,$)");
             int org    = w.Write($"IFCORGANIZATION($,{Str(_organizationName)},$,$,$)");
             int pao    = w.Write($"IFCPERSONANDORGANIZATION({Ref(person)},{Ref(org)},$)");
-            int app    = w.Write($"IFCAPPLICATION({Ref(org)},'1.0','NavisworksIfcExporter','NavisIFC')");
+            int app    = w.Write($"IFCAPPLICATION({Ref(org)},'1.0','PHDNavisTools','NavisIFC')");
             long ts    = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             int owner  = w.Write($"IFCOWNERHISTORY({Ref(pao)},{Ref(app)},$,.ADDED.,$,$,$,{ts})");
 
