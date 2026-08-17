@@ -1,0 +1,150 @@
+<Window x:Class="PHDNavisTools.UI.SetsToPropertyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Escrever nome do Set como propriedade — PHD"
+        Width="520" Height="680"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip">
+
+    <Window.Resources>
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,4,0,2"/>
+            <Setter Property="Padding" Value="8,4"/>
+        </Style>
+
+        <!-- Template do item de árvore com checkbox tri-state -->
+        <HierarchicalDataTemplate x:Key="SetNodeTemplate"
+                                  ItemsSource="{Binding Children}">
+            <StackPanel Orientation="Horizontal" Margin="2,1">
+                <CheckBox IsChecked="{Binding IsChecked}"
+                          IsThreeState="True"
+                          VerticalAlignment="Center" Margin="0,0,4,0"/>
+                <TextBlock Text="{Binding TypeIcon}" FontSize="12" Margin="0,0,4,0"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CountLabel}" Foreground="#999"
+                           FontSize="10" VerticalAlignment="Center" Margin="4,0,0,0"/>
+            </StackPanel>
+        </HierarchicalDataTemplate>
+    </Window.Resources>
+
+    <DockPanel Margin="10">
+
+        <!-- Botões fixos no rodapé -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button x:Name="BtnApply" Content="Aplicar" Width="90" Height="28"
+                    Margin="0,0,8,0" IsDefault="True" Click="BtnApply_Click"/>
+            <Button Content="Fechar" Width="90" Height="28"
+                    IsCancel="True" Click="BtnClose_Click"/>
+        </StackPanel>
+
+        <!-- Log fixo acima dos botões -->
+        <Border DockPanel.Dock="Bottom" BorderBrush="#DDD" BorderThickness="1"
+                CornerRadius="3" Margin="0,4,0,4">
+            <TextBox x:Name="TxtLog" Height="72" IsReadOnly="True"
+                     FontFamily="Consolas" FontSize="11" Background="#F8F8F8"
+                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                     BorderThickness="0"/>
+        </Border>
+
+        <!-- Conteúdo principal rolável -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- Destino -->
+                <GroupBox Header="Propriedade de destino">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Grid.Column="0" Content="Aba:"
+                               VerticalAlignment="Center" Padding="0,2"/>
+                        <ComboBox x:Name="CmbTab" Grid.Row="0" Grid.Column="1"
+                                  IsEditable="True" Height="24" Margin="0,2"
+                                  VerticalContentAlignment="Center"/>
+
+                        <Label Grid.Row="1" Grid.Column="0" Content="Propriedade:"
+                               VerticalAlignment="Center" Padding="0,2"/>
+                        <ComboBox x:Name="CmbProperty" Grid.Row="1" Grid.Column="1"
+                                  IsEditable="True" Height="24" Margin="0,2"
+                                  VerticalContentAlignment="Center"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- Sets -->
+                <GroupBox Header="Sets a processar">
+                    <DockPanel>
+                        <!-- Toolbar de seleção rápida -->
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,4">
+                            <Button Content="Selecionar tudo" Padding="8,2"
+                                    Click="BtnSelectAll_Click" Margin="0,0,4,0"/>
+                            <Button Content="Limpar seleção" Padding="8,2"
+                                    Click="BtnClearAll_Click" Margin="0,0,8,0"/>
+                            <TextBox x:Name="TxtFilter" Width="140" Height="22"
+                                     VerticalContentAlignment="Center"
+                                     TextChanged="TxtFilter_Changed"
+                                     ToolTip="Filtrar sets por nome"/>
+                            <TextBlock Text=" 🔍" VerticalAlignment="Center" Foreground="#888"/>
+                        </StackPanel>
+
+                        <!-- Árvore de sets -->
+                        <Border BorderBrush="#DDD" BorderThickness="1" CornerRadius="3">
+                            <TreeView x:Name="TreeSets" Height="200"
+                                      ItemTemplate="{StaticResource SetNodeTemplate}"
+                                      ItemContainerStyle="{x:Null}"
+                                      VirtualizingPanel.IsVirtualizing="True"
+                                      VirtualizingPanel.VirtualizationMode="Recycling"/>
+                        </Border>
+                    </DockPanel>
+                </GroupBox>
+
+                <!-- Múltiplos sets -->
+                <GroupBox Header="Elemento pertencente a múltiplos sets">
+                    <StackPanel>
+                        <RadioButton x:Name="RdoJoin" Content="Unir com separador:"
+                                     IsChecked="True" Margin="0,2"/>
+                        <StackPanel Orientation="Horizontal" Margin="20,0,0,4">
+                            <TextBox x:Name="TxtSeparator" Width="60" Height="22" Text=";"
+                                     VerticalContentAlignment="Center" Margin="0,0,8,0"
+                                     IsEnabled="{Binding IsChecked, ElementName=RdoJoin}"/>
+                            <TextBlock Text="Ex: Estrutural;MEP"
+                                       Foreground="#888" FontSize="10" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <RadioButton x:Name="RdoFirst"   Content="Usar apenas o primeiro set encontrado"
+                                     Margin="0,2"/>
+                        <RadioButton x:Name="RdoDeepest" Content="Usar o set mais específico (mais profundo na hierarquia)"
+                                     Margin="0,2"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Escopo -->
+                <GroupBox Header="Escopo">
+                    <StackPanel>
+                        <RadioButton x:Name="RdoAllElements" Content="Todos os elementos do modelo"
+                                     IsChecked="True" Margin="0,2"/>
+                        <RadioButton x:Name="RdoSelection"   Content="Apenas elementos selecionados"
+                                     Margin="0,2"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Atualização -->
+                <GroupBox Header="Se o elemento já tiver valor na propriedade">
+                    <StackPanel>
+                        <RadioButton x:Name="RdoOverwrite"    Content="Sobrescrever com o novo valor"
+                                     IsChecked="True" Margin="0,2"/>
+                        <RadioButton x:Name="RdoKeepExisting" Content="Manter o valor existente (ignorar elemento)"
+                                     Margin="0,2"/>
+                    </StackPanel>
+                </GroupBox>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

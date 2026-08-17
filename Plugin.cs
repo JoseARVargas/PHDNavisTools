@@ -161,4 +161,17 @@ namespace PHDNavisTools
             return 0;
         }
     }
+
+    [Plugin("SetNameToProperty", "PHD",
+        DisplayName = "Set → Propriedade",
+        ToolTip     = "Copia o nome do Search Set / Selection Set como propriedade nos elementos que pertencem a ele")]
+    [AddInPlugin(AddInLocation.None)]
+    public class SetNameToPropertyPlugin : AddInPlugin
+    {
+        public override int Execute(params string[] parameters)
+        {
+            new UI.SetsToPropertyWindow().ShowDialog();
+            return 0;
+        }
+    }
 }
