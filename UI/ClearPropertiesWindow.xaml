@@ -1,0 +1,109 @@
+<Window x:Class="PHDNavisTools.UI.ClearPropertiesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Limpar Propriedades — PHD"
+        Width="480" Height="580"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip">
+
+    <Window.Resources>
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,4,0,2"/>
+            <Setter Property="Padding" Value="8,4"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel Margin="10">
+
+        <!-- Botões fixos no rodapé -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button x:Name="BtnApply" Content="Aplicar" Width="90" Height="28"
+                    Margin="0,0,8,0" IsDefault="True" Click="BtnApply_Click"/>
+            <Button Content="Fechar" Width="90" Height="28"
+                    IsCancel="True" Click="BtnClose_Click"/>
+        </StackPanel>
+
+        <!-- Log fixo acima dos botões -->
+        <Border DockPanel.Dock="Bottom" BorderBrush="#DDD" BorderThickness="1"
+                CornerRadius="3" Margin="0,4,0,4">
+            <TextBox x:Name="TxtLog" Height="72" IsReadOnly="True"
+                     FontFamily="Consolas" FontSize="11" Background="#F8F8F8"
+                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                     BorderThickness="0"/>
+        </Border>
+
+        <!-- Conteúdo rolável -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- Aba -->
+                <GroupBox Header="Aba de propriedades">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="Aba:"
+                               VerticalAlignment="Center" Padding="0,2"/>
+                        <ComboBox x:Name="CmbTab" Grid.Column="1"
+                                  IsEditable="True" Height="24" Margin="0,2"
+                                  VerticalContentAlignment="Center"
+                                  SelectionChanged="CmbTab_SelectionChanged"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- O que remover -->
+                <GroupBox Header="O que remover">
+                    <StackPanel>
+                        <RadioButton x:Name="RdoWholeTab"
+                                     Content="Remover a aba inteira (todas as propriedades)"
+                                     IsChecked="True" Margin="0,2"
+                                     Checked="RdoMode_Checked"/>
+                        <RadioButton x:Name="RdoSpecific"
+                                     Content="Remover propriedades específicas"
+                                     Margin="0,2"
+                                     Checked="RdoMode_Checked"/>
+
+                        <!-- Lista de propriedades (visível no modo específico) -->
+                        <Border x:Name="BorderProps" Margin="0,6,0,0"
+                                BorderBrush="#DDD" BorderThickness="1" CornerRadius="3"
+                                Visibility="Collapsed">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="4,4,4,2">
+                                    <Button Content="Marcar tudo" Padding="6,2"
+                                            Click="BtnMarkAll_Click" Margin="0,0,4,0"/>
+                                    <Button Content="Desmarcar tudo" Padding="6,2"
+                                            Click="BtnClearMark_Click"/>
+                                </StackPanel>
+                                <ListBox x:Name="LstProperties" Height="150"
+                                         BorderThickness="0" Margin="2">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                                      Content="{Binding Name}"
+                                                      Margin="2,1"/>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </Border>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Escopo -->
+                <GroupBox Header="Escopo">
+                    <StackPanel>
+                        <RadioButton x:Name="RdoAllElements"
+                                     Content="Todos os elementos do modelo"
+                                     IsChecked="True" Margin="0,2"/>
+                        <RadioButton x:Name="RdoSelection"
+                                     Content="Apenas elementos selecionados"
+                                     Margin="0,2"/>
+                    </StackPanel>
+                </GroupBox>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

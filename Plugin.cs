@@ -174,4 +174,17 @@ namespace PHDNavisTools
             return 0;
         }
     }
+
+    [Plugin("ClearProperties", "PHD",
+        DisplayName = "Limpar Propriedades",
+        ToolTip     = "Remove abas ou propriedades customizadas dos elementos do modelo")]
+    [AddInPlugin(AddInLocation.None)]
+    public class ClearPropertiesPlugin : AddInPlugin
+    {
+        public override int Execute(params string[] parameters)
+        {
+            new UI.ClearPropertiesWindow().ShowDialog();
+            return 0;
+        }
+    }
 }
