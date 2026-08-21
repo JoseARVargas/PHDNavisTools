@@ -230,12 +230,26 @@ namespace PHDNavisTools
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("SetNameToProperty.PHD")),
                 };
 
+                var btnClearProps = new RibbonButton
+                {
+                    Id             = "ClearProperties.PHD",
+                    Text           = "Limpar\nPropriedades",
+                    ShowText       = true,
+                    Size           = RibbonItemSize.Large,
+                    Orientation    = Orientation.Vertical,
+                    IsEnabled      = true,
+                    LargeImage     = LoadIcon("verificar_propriedades_32x32.png"),
+                    CommandHandler = new RibbonRelayCommand(() =>
+                        Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ClearProperties.PHD")),
+                };
+
                 var checkPanelSource = new RibbonPanelSource { Id = "PHD_Check_Panel", Title = "Check" };
                 checkPanelSource.Items.Add(btnCheckProps);
                 checkPanelSource.Items.Add(btnCheckIds);
                 checkPanelSource.Items.Add(btnWriteProps);
                 checkPanelSource.Items.Add(btnExcelImport);
                 checkPanelSource.Items.Add(btnSetToProperty);
+                checkPanelSource.Items.Add(btnClearProps);
 
                 var viewPanelSource = new RibbonPanelSource { Id = "PHD_View_Panel", Title = "View" };
                 viewPanelSource.Items.Add(btnHighlight);
