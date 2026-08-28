@@ -84,6 +84,11 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("exportar_ifc_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Exportar IFC",
+                        Content = "Abre o painel de exportação BIM para IFC 4 ou IFC2x3. Suporta modelo completo, seleção atual ou Search Sets, com geometria tessalada e propriedades.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("IfcExporterCommand.PHD")),
                 };
@@ -97,6 +102,11 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("exportar_clash_results_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Exportar Clash Results",
+                        Content = "Exporta os resultados do Clash Detective para um arquivo CSV, compatível com Power BI, Excel e outras ferramentas de análise.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ExportClashCsv.PHD")),
                 };
@@ -110,6 +120,11 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("exportar_fbx_sets_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Exportar FBX por Sets",
+                        Content = "Isola elementos de Search Sets na viewport do Navisworks e prepara a cena para exportação no formato FBX.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ExportFbxSets.PHD")),
                 };
@@ -129,6 +144,11 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("auto_attach_qto_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "QTO Auto Attach",
+                        Content = "Vincula automaticamente elementos do modelo ao módulo Quantity Takeoff por Search Set ou por correspondência de propriedade-chave.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("QtoAutoAttach.PHD")),
                 };
@@ -148,6 +168,11 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("realcar_selecao_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Realçar Seleção",
+                        Content = "Aplica cor e transparência nos elementos não selecionados para destacar visualmente a seleção atual na viewport.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("HighlightSelection.PHD")),
                 };
@@ -161,6 +186,11 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("restaurar_aparencia_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Restaurar Aparência",
+                        Content = "Remove todas as sobreposições de cor e transparência temporárias, restaurando a aparência original do modelo.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ResetAppearance.PHD")),
                 };
@@ -174,6 +204,11 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("verificar_propriedades_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Verificar Propriedades",
+                        Content = "Verifica o preenchimento de propriedades obrigatórias por disciplina, com base em um arquivo de regras CSV. Gera relatório de conformidade.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("CheckProperties.PHD")),
                 };
@@ -187,6 +222,11 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("verificar_propriedades_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Verificar IDS",
+                        Content = "Valida o modelo contra um arquivo IDS (Information Delivery Specification) do buildingSMART. Exibe os elementos que não atendem aos requisitos.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("CheckIDS.PHD")),
                 };
@@ -200,6 +240,11 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("escrever_propriedades_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Escrever Propriedades",
+                        Content = "Grava propriedades customizadas nos elementos selecionados. Permite criar ou reutilizar abas existentes. As propriedades ficam persistidas no NWD/NWF.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("WriteProperties.PHD")),
                 };
@@ -213,6 +258,11 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("importar_excel_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Importar Dados Excel",
+                        Content = "Importa dados de uma planilha Excel e grava como propriedades nos elementos do modelo, associando linhas via chave de correspondência.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ExcelImport.PHD")),
                 };
@@ -226,6 +276,11 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("escrever_propriedades_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Set → Propriedade",
+                        Content = "Copia o nome do Search Set ou Selection Set como propriedade dos elementos que pertencem a ele. Suporta múltiplos sets com diferentes estratégias de combinação.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("SetNameToProperty.PHD")),
                 };
@@ -239,8 +294,31 @@ namespace PHDNavisTools
                     Orientation    = Orientation.Vertical,
                     IsEnabled      = true,
                     LargeImage     = LoadIcon("verificar_propriedades_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Limpar Propriedades",
+                        Content = "Remove abas ou propriedades customizadas dos elementos. Pode remover a aba inteira ou apenas propriedades específicas selecionadas.",
+                    },
                     CommandHandler = new RibbonRelayCommand(() =>
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("ClearProperties.PHD")),
+                };
+
+                var btnCascade = new RibbonButton
+                {
+                    Id             = "CascadeProperty.PHD",
+                    Text           = "Cascatear\nPropriedade",
+                    ShowText       = true,
+                    Size           = RibbonItemSize.Large,
+                    Orientation    = Orientation.Vertical,
+                    IsEnabled      = true,
+                    LargeImage     = LoadIcon("escrever_propriedades_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Cascatear Propriedade",
+                        Content = "Propaga o valor de uma propriedade dos elementos selecionados (pais) para todos os seus descendentes na hierarquia do modelo.",
+                    },
+                    CommandHandler = new RibbonRelayCommand(() =>
+                        Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("CascadeProperty.PHD")),
                 };
 
                 var checkPanelSource = new RibbonPanelSource { Id = "PHD_Check_Panel", Title = "Check" };
@@ -250,10 +328,35 @@ namespace PHDNavisTools
                 checkPanelSource.Items.Add(btnExcelImport);
                 checkPanelSource.Items.Add(btnSetToProperty);
                 checkPanelSource.Items.Add(btnClearProps);
+                checkPanelSource.Items.Add(btnCascade);
 
                 var viewPanelSource = new RibbonPanelSource { Id = "PHD_View_Panel", Title = "View" };
                 viewPanelSource.Items.Add(btnHighlight);
                 viewPanelSource.Items.Add(btnResetAppearance);
+
+                // ── Painel PHD ─────────────────────────────────────────────────
+                var btnPhdSite = new RibbonButton
+                {
+                    Id             = "PHD_Website",
+                    Text           = "PHD\nEngenharia",
+                    ShowText       = true,
+                    Size           = RibbonItemSize.Large,
+                    Orientation    = Orientation.Vertical,
+                    IsEnabled      = true,
+                    LargeImage     = LoadIcon("phd_logo_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "PHD Engenharia",
+                        Content = "Acesse o site da PHD Engenharia Digital.",
+                    },
+                    CommandHandler = new RibbonRelayCommand(() =>
+                        System.Diagnostics.Process.Start(
+                            new System.Diagnostics.ProcessStartInfo("https://phdengenharia.eng.br/")
+                            { UseShellExecute = true })),
+                };
+
+                var phdPanelSource = new RibbonPanelSource { Id = "PHD_Brand_Panel", Title = "PHD" };
+                phdPanelSource.Items.Add(btnPhdSite);
 
                 var panel       = new RibbonPanel { Source = panelSource };
                 var clashPanel  = new RibbonPanel { Source = clashPanelSource };
@@ -261,6 +364,7 @@ namespace PHDNavisTools
                 var qtoPanel    = new RibbonPanel { Source = qtoPanelSource };
                 var checkPanel  = new RibbonPanel { Source = checkPanelSource };
                 var viewPanel   = new RibbonPanel { Source = viewPanelSource };
+                var phdPanel    = new RibbonPanel { Source = phdPanelSource };
 
                 var tab = new RibbonTab
                 {
@@ -274,6 +378,7 @@ namespace PHDNavisTools
                 tab.Panels.Add(qtoPanel);
                 tab.Panels.Add(checkPanel);
                 tab.Panels.Add(viewPanel);
+                tab.Panels.Add(phdPanel);
 
                 ribbon.Tabs.Add(tab);
                 Log("Aba PHD Eng. Digital adicionada com sucesso");

@@ -24,3 +24,5 @@ logs/
 installer/output/
 installer/assets/
 installer/*_build.iss
+
+*.zip

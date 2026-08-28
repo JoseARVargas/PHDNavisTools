@@ -1,0 +1,104 @@
+<Window x:Class="PHDNavisTools.UI.CascadePropertyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Cascatear Propriedade — PHD"
+        Width="480" Height="520"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip">
+    <Window.Resources>
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,4,0,2"/>
+            <Setter Property="Padding" Value="8,4"/>
+        </Style>
+    </Window.Resources>
+    <DockPanel Margin="10">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button x:Name="BtnApply" Content="Aplicar" Width="90" Height="28"
+                    Margin="0,0,8,0" IsDefault="True" Click="BtnApply_Click"/>
+            <Button Content="Fechar" Width="90" Height="28"
+                    IsCancel="True" Click="BtnClose_Click"/>
+        </StackPanel>
+
+        <!-- Log -->
+        <Border DockPanel.Dock="Bottom" BorderBrush="#DDD" BorderThickness="1"
+                CornerRadius="3" Margin="0,4,0,4">
+            <TextBox x:Name="TxtLog" Height="72" IsReadOnly="True"
+                     FontFamily="Consolas" FontSize="11" Background="#F8F8F8"
+                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                     BorderThickness="0"/>
+        </Border>
+
+        <!-- Barra de progresso -->
+        <StackPanel DockPanel.Dock="Bottom" x:Name="PnlProgress"
+                    Visibility="Collapsed" Margin="0,4,0,0">
+            <ProgressBar x:Name="PrgBar" Height="16" Minimum="0" Maximum="100"
+                         Margin="0,0,0,2"/>
+            <TextBlock x:Name="TxtProgress" FontSize="11" Foreground="#555"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Border Background="#FFF8E1" BorderBrush="#FFE082" BorderThickness="1"
+                        CornerRadius="3" Padding="8,6" Margin="0,4,0,4">
+                    <TextBlock TextWrapping="Wrap" FontSize="11">
+                        <Run FontWeight="SemiBold">Pais:</Run>
+                        <Run>elementos selecionados no Navisworks. O valor e lido de cada pai e gravado em todos os seus descendentes.</Run>
+                    </TextBlock>
+                </Border>
+
+                <GroupBox Header="Propriedade a cascatear">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Grid.Column="0" Content="Propriedade:"
+                               VerticalAlignment="Center" Padding="0,2"/>
+                        <ComboBox x:Name="CmbProperty" Grid.Row="0" Grid.Column="1"
+                                  IsEditable="True" Height="24" Margin="0,2"
+                                  VerticalContentAlignment="Center"/>
+
+                        <Separator Grid.Row="1" Grid.ColumnSpan="2" Margin="0,6,0,4"/>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <Label Content="Aba" Padding="0,2"/>
+                            <TextBlock Text=" (opcional):" Foreground="#888"
+                                       FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ComboBox x:Name="CmbTab" Grid.Row="2" Grid.Column="1"
+                                  IsEditable="True" Height="24" Margin="0,2"
+                                  VerticalContentAlignment="Center"/>
+                    </Grid>
+                </GroupBox>
+
+                <Border Background="#E8F5E9" BorderBrush="#A5D6A7" BorderThickness="1"
+                        CornerRadius="3" Padding="8,5" Margin="0,0,0,4">
+                    <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#2E7D32">
+                        <Run FontWeight="SemiBold">Dica:</Run>
+                        <Run>se a aba for omitida, todas as abas do pai serao varridas. Informar a aba melhora a performance.</Run>
+                    </TextBlock>
+                </Border>
+
+                <GroupBox Header="Descendentes que nao tem a propriedade">
+                    <StackPanel>
+                        <RadioButton x:Name="RdoCreate"
+                                     Content="Criar a propriedade no descendente"
+                                     IsChecked="True" Margin="0,2"/>
+                        <RadioButton x:Name="RdoSkip"
+                                     Content="Ignorar (atualizar apenas quem ja tem)"
+                                     Margin="0,2"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

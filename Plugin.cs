@@ -187,4 +187,17 @@ namespace PHDNavisTools
             return 0;
         }
     }
+
+    [Plugin("CascadeProperty", "PHD",
+        DisplayName = "Cascatear Propriedade",
+        ToolTip     = "Propaga o valor de uma propriedade do elemento pai para todos os seus descendentes")]
+    [AddInPlugin(AddInLocation.None)]
+    public class CascadePropertyPlugin : AddInPlugin
+    {
+        public override int Execute(params string[] parameters)
+        {
+            new UI.CascadePropertyWindow().ShowDialog();
+            return 0;
+        }
+    }
 }
