@@ -47,10 +47,12 @@ namespace PHDNavisTools.Core
 
         /// <summary>
         /// Grava múltiplas propriedades em múltiplos elementos em uma única sessão COM.
+        /// <paramref name="onProgress"/> é chamado a cada 10.000 itens com o índice atual.
         /// </summary>
         public void WriteAll(
             string tabDisplayName,
-            IEnumerable<(ModelItem Item, Dictionary<string, string> Props)> batch)
+            IEnumerable<(ModelItem Item, Dictionary<string, string> Props)> batch,
+            Action<int>? onProgress = null)
         {
             var list = batch.ToList();
             if (list.Count == 0) return;
@@ -59,7 +61,11 @@ namespace PHDNavisTools.Core
             state.BeginEdit("PHD Write Properties");
             try
             {
-                foreach (var (item, props) in list)
+                int count = 0;
+                foreach (var entry in list)
+                {
+                    var item  = entry.Item;
+                    var props = entry.Props;
                     foreach (var kv in props)
                     {
                         try
@@ -71,6 +77,10 @@ namespace PHDNavisTools.Core
                             PluginLogger.Warn($"[PropertyWriter.WriteAll] Erro em '{kv.Key}': {ex.Message}");
                         }
                     }
+                    count++;
+                    if (onProgress != null && count % 10_000 == 0)
+                        onProgress(count);
+                }
             }
             finally
             {

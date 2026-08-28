@@ -151,7 +151,14 @@ namespace PHDNavisTools.Core
                 Report($"Gravando '{options.PropertyName}' em '{tab}' ({items.Count:N0} elemento(s))...");
                 try
                 {
-                    new PropertyWriter().WriteAll(tab, items);
+                    int writtenBefore = written;
+                    new PropertyWriter().WriteAll(tab, items, count =>
+                    {
+                        ReportValue(writtenBefore + count, totalToWrite);
+                        // Log a cada 50.000 para dar feedback textual sem spam
+                        if (count % 50_000 == 0)
+                            Report($"  '{tab}': {count:N0}/{items.Count:N0} gravado(s)...");
+                    });
                     result.ElementsWritten += items.Count;
                     written += items.Count;
                     ReportValue(written, totalToWrite);
