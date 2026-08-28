@@ -338,7 +338,7 @@ namespace PHDNavisTools
                 var btnPhdSite = new RibbonButton
                 {
                     Id             = "PHD_Website",
-                    Text           = "PHD\nEngenharia",
+                    Text           = "Site",
                     ShowText       = true,
                     Size           = RibbonItemSize.Large,
                     Orientation    = Orientation.Vertical,
@@ -372,13 +372,13 @@ namespace PHDNavisTools
                     Title     = "PHD Eng. Digital",
                     IsVisible = true,
                 };
+                tab.Panels.Add(phdPanel);
                 tab.Panels.Add(panel);
                 tab.Panels.Add(clashPanel);
                 tab.Panels.Add(fbxPanel);
                 tab.Panels.Add(qtoPanel);
                 tab.Panels.Add(checkPanel);
                 tab.Panels.Add(viewPanel);
-                tab.Panels.Add(phdPanel);
 
                 ribbon.Tabs.Add(tab);
                 Log("Aba PHD Eng. Digital adicionada com sucesso");

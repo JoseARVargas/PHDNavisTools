@@ -7,10 +7,10 @@ namespace PHDNavisTools.Core
 {
     public class CascadeOptions
     {
-        /// <summary>Aba onde procurar a propriedade. Vazio = busca em todas as abas.</summary>
-        public string TabName         { get; set; } = "";
-        public string PropertyName    { get; set; } = "";
-        public bool   CreateIfMissing { get; set; } = true;
+        /// <summary>Abas onde procurar a propriedade. Vazio = busca em todas as abas.</summary>
+        public List<string> TabNames        { get; set; } = new();
+        public string       PropertyName    { get; set; } = "";
+        public bool         CreateIfMissing { get; set; } = true;
     }
 
     public class CascadeResult
@@ -23,10 +23,7 @@ namespace PHDNavisTools.Core
 
     public class CascadePropertyService
     {
-        /// <summary>Mensagens de log para exibir no TextBox da janela.</summary>
         public event EventHandler<string>? ProgressChanged;
-
-        /// <summary>Progresso numérico (Current, Total) para atualizar a barra.</summary>
         public event EventHandler<(int Current, int Total)>? ProgressValue;
 
         public CascadeResult Apply(
@@ -43,35 +40,45 @@ namespace PHDNavisTools.Core
                 return result;
             }
 
-            bool tabFixed = !string.IsNullOrWhiteSpace(options.TabName);
-            Report($"{parentList.Count} pai(s) | propriedade: '{options.PropertyName}'" +
-                   (tabFixed ? $" | aba: '{options.TabName}'" : " | buscando em todas as abas"));
+            bool   tabsSpecified = options.TabNames.Count > 0;
+            string tabDesc       = tabsSpecified
+                ? $"abas: [{string.Join(", ", options.TabNames)}]"
+                : "todas as abas";
 
-            // ── Fase 1: coleta descendentes e calcula total ─────────────────────
-            Report("Coletando descendentes...");
+            Report($"{parentList.Count} pai(s) | propriedade: '{options.PropertyName}' | {tabDesc}");
 
-            // parentData: (label, pares tab/valor, lista de descendentes já materializada)
+            // ── Fase 1: coleta descendentes ──────────────────────────────────────
             var parentData = new List<(string Label,
                                        List<(string Tab, string Value)> Pairs,
                                        List<ModelItem> Descendants)>();
 
-            foreach (var parent in parentList)
+            for (int i = 0; i < parentList.Count; i++)
             {
-                var pairs = tabFixed
-                    ? ReadInTab(parent, options.TabName, options.PropertyName)
+                var parent = parentList[i];
+                var label  = GetLabel(parent);
+                Report($"Coletando pai {i + 1}/{parentList.Count}: '{label}'...");
+
+                var pairs = tabsSpecified
+                    ? ReadInTabs(parent, options.TabNames, options.PropertyName)
                     : ReadAllTabs(parent, options.PropertyName);
 
                 if (pairs.Count == 0)
                 {
                     result.Warnings.Add(
-                        $"'{GetLabel(parent)}' não tem '{options.PropertyName}'" +
-                        (tabFixed ? $" na aba '{options.TabName}'" : " em nenhuma aba") + " — ignorado.");
+                        $"'{label}' nao tem '{options.PropertyName}'" +
+                        (tabsSpecified
+                            ? $" nas abas [{string.Join(", ", options.TabNames)}]"
+                            : " em nenhuma aba") +
+                        " — ignorado.");
                     continue;
                 }
 
-                // Iterativo (evita stack overflow em hierarquias muito profundas)
-                var descendants = GetDescendantsIterative(parent);
-                parentData.Add((GetLabel(parent), pairs, descendants));
+                int capturedIdx  = i;
+                var descendants  = GetDescendantsIterative(parent, count =>
+                    Report($"  [{capturedIdx + 1}/{parentList.Count}] '{label}': {count:N0} descendentes..."));
+
+                Report($"  Pai '{label}': {descendants.Count:N0} descendente(s) encontrado(s).");
+                parentData.Add((label, pairs, descendants));
                 result.ParentsProcessed++;
             }
 
@@ -85,17 +92,18 @@ namespace PHDNavisTools.Core
             Report($"Total: {totalDesc:N0} descendente(s) a verificar em {parentData.Count} pai(s).");
             ReportValue(0, totalDesc);
 
-            // ── Fase 2: monta batch com progresso ───────────────────────────────
+            // ── Fase 2: monta batch ──────────────────────────────────────────────
             var batchByTab = new Dictionary<string, List<(ModelItem, Dictionary<string, string>)>>(
                 StringComparer.OrdinalIgnoreCase);
 
-            int processed = 0;
-            // Reporta a cada 1% ou a cada 500 elementos, o que for maior
+            int processed  = 0;
             int reportStep = Math.Max(500, totalDesc / 100);
 
-            foreach (var (label, pairs, descendants) in parentData)
+            foreach (var pEntry in parentData)
             {
-                Report($"  Pai '{label}': {descendants.Count:N0} descendente(s).");
+                var label       = pEntry.Label;
+                var pairs       = pEntry.Pairs;
+                var descendants = pEntry.Descendants;
 
                 foreach (var desc in descendants)
                 {
@@ -103,8 +111,11 @@ namespace PHDNavisTools.Core
                     if (processed % reportStep == 0 || processed == totalDesc)
                         ReportValue(processed, totalDesc);
 
-                    foreach (var (tab, value) in pairs)
+                    foreach (var pair in pairs)
                     {
+                        var tab   = pair.Tab;
+                        var value = pair.Value;
+
                         if (!options.CreateIfMissing && !HasProperty(desc, tab, options.PropertyName))
                         {
                             result.ElementsSkipped++;
@@ -155,26 +166,29 @@ namespace PHDNavisTools.Core
             return result;
         }
 
-        // -----------------------------------------------------------------------
-        // Leitura de propriedades
-        // -----------------------------------------------------------------------
+        // ── Leitura ──────────────────────────────────────────────────────────────
 
-        private static List<(string Tab, string Value)> ReadInTab(
-            ModelItem item, string tabName, string propName)
+        private static List<(string Tab, string Value)> ReadInTabs(
+            ModelItem item, List<string> tabNames, string propName)
         {
+            var result = new List<(string, string)>();
             foreach (var cat in item.PropertyCategories)
             {
-                if (!string.Equals(cat.DisplayName, tabName, StringComparison.OrdinalIgnoreCase))
-                    continue;
+                bool matched = false;
+                foreach (var t in tabNames)
+                    if (string.Equals(cat.DisplayName, t, StringComparison.OrdinalIgnoreCase))
+                    { matched = true; break; }
+                if (!matched) continue;
+
                 foreach (var prop in cat.Properties)
                     if (string.Equals(prop.DisplayName, propName, StringComparison.OrdinalIgnoreCase))
                     {
                         var val = prop.Value?.ToDisplayString();
                         if (val != null)
-                            return new List<(string, string)> { (tabName, val) };
+                            result.Add((cat.DisplayName, val));
                     }
             }
-            return new List<(string, string)>();
+            return result;
         }
 
         private static List<(string Tab, string Value)> ReadAllTabs(
@@ -205,8 +219,9 @@ namespace PHDNavisTools.Core
             return false;
         }
 
-        // Iterativo: evita stack overflow em hierarquias muito profundas
-        private static List<ModelItem> GetDescendantsIterative(ModelItem root)
+        // Iterativo com callback de progresso a cada 5.000 items
+        private static List<ModelItem> GetDescendantsIterative(
+            ModelItem root, Action<int>? onProgress = null)
         {
             var result = new List<ModelItem>();
             var stack  = new Stack<ModelItem>();
@@ -218,6 +233,8 @@ namespace PHDNavisTools.Core
             {
                 var item = stack.Pop();
                 result.Add(item);
+                if (onProgress != null && result.Count % 5000 == 0)
+                    onProgress(result.Count);
                 foreach (var child in item.Children)
                     stack.Push(child);
             }
@@ -228,7 +245,7 @@ namespace PHDNavisTools.Core
         private static string GetLabel(ModelItem item) =>
             string.IsNullOrWhiteSpace(item.DisplayName) ? "(sem nome)" : item.DisplayName;
 
-        private void Report(string msg)      => ProgressChanged?.Invoke(this, msg);
-        private void ReportValue(int c, int t) => ProgressValue?.Invoke(this, (c, t));
+        private void Report(string msg)          => ProgressChanged?.Invoke(this, msg);
+        private void ReportValue(int c, int t)   => ProgressValue?.Invoke(this, (c, t));
     }
 }

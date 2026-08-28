@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -8,6 +9,18 @@ using NavisApp = Autodesk.Navisworks.Api.Application;
 
 namespace PHDNavisTools.UI
 {
+    public class TabItem : INotifyPropertyChanged
+    {
+        private bool _isChecked;
+        public string Name { get; set; } = "";
+        public bool IsChecked
+        {
+            get => _isChecked;
+            set { _isChecked = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsChecked))); }
+        }
+        public event PropertyChangedEventHandler? PropertyChanged;
+    }
+
     public partial class CascadePropertyWindow : Window
     {
         private Dictionary<string, List<string>> _knownTabs = new();
@@ -24,7 +37,11 @@ namespace PHDNavisTools.UI
             {
                 _knownTabs = NavisPropertyScanner.Scan(maxItems: 3000);
 
-                CmbTab.ItemsSource = _knownTabs.Keys.OrderBy(k => k).ToList();
+                LstTabs.ItemsSource = _knownTabs.Keys
+                    .OrderBy(k => k)
+                    .Select(k => new TabItem { Name = k })
+                    .ToList();
+
                 CmbProperty.ItemsSource = _knownTabs.Values
                     .SelectMany(v => v)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -44,7 +61,6 @@ namespace PHDNavisTools.UI
         private async void BtnApply_Click(object sender, RoutedEventArgs e)
         {
             var prop = (CmbProperty.Text ?? "").Trim();
-            var tab  = (CmbTab.Text ?? "").Trim();
 
             if (string.IsNullOrEmpty(prop))
             {
@@ -64,21 +80,27 @@ namespace PHDNavisTools.UI
                 return;
             }
 
-            BtnApply.IsEnabled  = false;
+            var checkedTabs = LstTabs.Items.OfType<TabItem>()
+                .Where(t => t.IsChecked)
+                .Select(t => t.Name)
+                .ToList();
+
+            BtnApply.IsEnabled     = false;
             PnlProgress.Visibility = Visibility.Visible;
-            PrgBar.Value           = 0;
-            TxtProgress.Text       = "Iniciando...";
+            PrgBar.IsIndeterminate = true;
+            TxtProgress.Text       = "Coletando descendentes...";
 
             var options = new CascadeOptions
             {
-                TabName         = tab,
+                TabNames        = checkedTabs,
                 PropertyName    = prop,
                 CreateIfMissing = RdoCreate.IsChecked == true,
             };
 
-            AppendLog(string.IsNullOrEmpty(tab)
-                ? $"Cascateando '{prop}' (todas as abas) de {parents.Count} pai(s)..."
-                : $"Cascateando '{prop}' (aba '{tab}') de {parents.Count} pai(s)...");
+            string tabDesc = checkedTabs.Count > 0
+                ? $"abas [{string.Join(", ", checkedTabs)}]"
+                : "todas as abas";
+            AppendLog($"Cascateando '{prop}' ({tabDesc}) de {parents.Count} pai(s)...");
 
             try
             {
@@ -87,7 +109,12 @@ namespace PHDNavisTools.UI
                     var svc = new CascadePropertyService();
 
                     svc.ProgressChanged += (_, msg) =>
-                        Dispatcher.Invoke(() => AppendLog(msg));
+                        Dispatcher.Invoke(() =>
+                        {
+                            AppendLog(msg);
+                            if (PrgBar.IsIndeterminate)
+                                TxtProgress.Text = msg.Length > 70 ? msg.Substring(0, 67) + "..." : msg;
+                        });
 
                     svc.ProgressValue += (_, p) =>
                         Dispatcher.Invoke(() => UpdateProgress(p.Current, p.Total));
@@ -119,10 +146,15 @@ namespace PHDNavisTools.UI
 
         private void UpdateProgress(int current, int total)
         {
-            if (total <= 0) return;
-            PrgBar.Maximum   = total;
-            PrgBar.Value     = current;
-            TxtProgress.Text = $"{current:N0} / {total:N0} elementos";
+            if (total <= 0)
+            {
+                PrgBar.IsIndeterminate = true;
+                return;
+            }
+            PrgBar.IsIndeterminate = false;
+            PrgBar.Maximum         = total;
+            PrgBar.Value           = current;
+            TxtProgress.Text       = $"{current:N0} / {total:N0} elementos";
         }
 
         private void BtnClose_Click(object sender, RoutedEventArgs e) => Close();
