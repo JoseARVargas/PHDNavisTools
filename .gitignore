@@ -26,3 +26,6 @@ installer/assets/
 installer/*_build.iss
 
 *.zip
+
+# Release staging (gerado por scripts/Make-Release.ps1)
+dist/
