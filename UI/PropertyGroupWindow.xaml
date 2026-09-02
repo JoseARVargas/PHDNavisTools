@@ -1,0 +1,160 @@
+<Window x:Class="PHDNavisTools.UI.PropertyGroupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Propriedade → Search Sets — PHD"
+        Width="500" Height="600"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip">
+    <Window.Resources>
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,4,0,2"/>
+            <Setter Property="Padding" Value="8,4"/>
+        </Style>
+    </Window.Resources>
+    <DockPanel Margin="10">
+        <!-- Botões -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button x:Name="BtnApply" Content="Aplicar" Width="90" Height="28"
+                    Margin="0,0,8,0" IsDefault="True" Click="BtnApply_Click"/>
+            <Button Content="Fechar" Width="90" Height="28"
+                    IsCancel="True" Click="BtnClose_Click"/>
+        </StackPanel>
+
+        <!-- Log -->
+        <Border DockPanel.Dock="Bottom" BorderBrush="#DDD" BorderThickness="1"
+                CornerRadius="3" Margin="0,4,0,4">
+            <TextBox x:Name="TxtLog" Height="68" IsReadOnly="True"
+                     FontFamily="Consolas" FontSize="11" Background="#F8F8F8"
+                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                     BorderThickness="0"/>
+        </Border>
+
+        <!-- Progresso -->
+        <StackPanel DockPanel.Dock="Bottom" x:Name="PnlProgress"
+                    Visibility="Collapsed" Margin="0,4,0,0">
+            <ProgressBar x:Name="PrgBar" Height="16" Minimum="0" Maximum="100"
+                         Margin="0,0,0,2"/>
+            <TextBlock x:Name="TxtProgress" FontSize="11" Foreground="#555"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- Adicionar propriedade -->
+                <GroupBox Header="Propriedades para agrupar">
+                    <StackPanel>
+                        <Grid Margin="0,2,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="CmbTab" Grid.Column="0"
+                                      IsEditable="True" Height="24"
+                                      VerticalContentAlignment="Center"/>
+                            <ComboBox x:Name="CmbProp" Grid.Column="2"
+                                      IsEditable="True" Height="24"
+                                      VerticalContentAlignment="Center"/>
+                            <Button Grid.Column="4" Content="+ Adicionar" Height="24"
+                                    Padding="8,0" Click="BtnAdd_Click"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Aba" FontSize="10"
+                                       Foreground="#888" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="Propriedade" FontSize="10"
+                                       Foreground="#888" HorizontalAlignment="Center"/>
+                        </Grid>
+
+                        <Border BorderBrush="#CCC" BorderThickness="1" CornerRadius="2">
+                            <ListBox x:Name="LstProps" Height="90" BorderThickness="0"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding Display}"
+                                                       VerticalAlignment="Center"
+                                                       Padding="2,0"/>
+                                            <Button Grid.Column="1" Content="✕"
+                                                    Width="22" Height="20"
+                                                    Padding="0"
+                                                    FontSize="10"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Click="BtnRemoveProp_Click"
+                                                    Tag="{Binding}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+
+                        <TextBlock Margin="0,4,0,0" FontSize="11" Foreground="#666" TextWrapping="Wrap">
+                            Os Search Sets serao nomeados com a combinacao dos valores das propriedades acima.
+                        </TextBlock>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Opções -->
+                <GroupBox Header="Opcoes">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Grid.Column="0" Content="Nome da pasta:"
+                               VerticalAlignment="Center" Padding="0,4"/>
+                        <TextBox x:Name="TxtFolder" Grid.Row="0" Grid.Column="1"
+                                 Height="24" Margin="0,4" VerticalContentAlignment="Center"
+                                 Text="PHD – Agrupamento"/>
+
+                        <Label Grid.Row="1" Grid.Column="0" Content="Separador:"
+                               VerticalAlignment="Center" Padding="0,4"/>
+                        <ComboBox x:Name="CmbSep" Grid.Row="1" Grid.Column="1"
+                                  IsEditable="True" Height="24" Margin="0,4" Width="100"
+                                  HorizontalAlignment="Left" VerticalContentAlignment="Center">
+                            <ComboBoxItem Content=" | "/>
+                            <ComboBoxItem Content=" - "/>
+                            <ComboBoxItem Content=" / "/>
+                            <ComboBoxItem Content="_"/>
+                            <ComboBoxItem Content=" : "/>
+                            <ComboBoxItem Content=" — "/>
+                        </ComboBox>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Margin="0,4,0,0">
+                            <StackPanel Orientation="Horizontal" Margin="0,2">
+                                <RadioButton x:Name="RdoAll" Content="Modelo completo"
+                                             IsChecked="True" Margin="0,0,16,0"/>
+                                <RadioButton x:Name="RdoSel" Content="Seleção atual"/>
+                            </StackPanel>
+                            <CheckBox x:Name="ChkMissing" Content="Incluir elementos sem valor (como '(sem valor)')"
+                                      Margin="0,2"/>
+                            <CheckBox x:Name="ChkOverwrite" Content="Sobrescrever pasta existente"
+                                      IsChecked="True" Margin="0,2"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

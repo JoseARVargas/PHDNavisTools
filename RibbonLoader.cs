@@ -321,6 +321,24 @@ namespace PHDNavisTools
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("CascadeProperty.PHD")),
                 };
 
+                var btnPropToSets = new RibbonButton
+                {
+                    Id             = "PropertyGroupToSets.PHD",
+                    Text           = "Propriedade\n→ Search Sets",
+                    ShowText       = true,
+                    Size           = RibbonItemSize.Large,
+                    Orientation    = Orientation.Vertical,
+                    IsEnabled      = true,
+                    LargeImage     = LoadIcon("exportar_ifc_searchset_32x32.png"),
+                    ToolTip        = new RibbonToolTip
+                    {
+                        Title   = "Propriedade → Search Sets",
+                        Content = "Varre o modelo e cria Search Sets nomeados com as combinacoes de valores das propriedades escolhidas.",
+                    },
+                    CommandHandler = new RibbonRelayCommand(() =>
+                        Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("PropertyGroupToSets.PHD")),
+                };
+
                 var checkPanelSource = new RibbonPanelSource { Id = "PHD_Check_Panel", Title = "Check" };
                 checkPanelSource.Items.Add(btnCheckProps);
                 checkPanelSource.Items.Add(btnCheckIds);
@@ -329,6 +347,7 @@ namespace PHDNavisTools
                 checkPanelSource.Items.Add(btnSetToProperty);
                 checkPanelSource.Items.Add(btnClearProps);
                 checkPanelSource.Items.Add(btnCascade);
+                checkPanelSource.Items.Add(btnPropToSets);
 
                 var viewPanelSource = new RibbonPanelSource { Id = "PHD_View_Panel", Title = "View" };
                 viewPanelSource.Items.Add(btnHighlight);

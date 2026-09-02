@@ -200,4 +200,17 @@ namespace PHDNavisTools
             return 0;
         }
     }
+
+    [Plugin("PropertyGroupToSets", "PHD",
+        DisplayName = "Propriedade → Search Sets",
+        ToolTip     = "Cria Search Sets agrupando elementos pelas combinacoes de valores das propriedades escolhidas")]
+    [AddInPlugin(AddInLocation.None)]
+    public class PropertyGroupPlugin : AddInPlugin
+    {
+        public override int Execute(params string[] parameters)
+        {
+            new UI.PropertyGroupWindow().ShowDialog();
+            return 0;
+        }
+    }
 }
