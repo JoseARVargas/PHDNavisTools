@@ -1,7 +1,7 @@
 # PHDNavisTools — Plugin para Autodesk Navisworks
 
 Plugin desenvolvido pela **PHD Engenharia Digital** para Autodesk Navisworks Manage 2025/2026/2027.  
-Adiciona uma aba **"PHD Eng. Digital"** ao ribbon com ferramentas para exportação, verificação, gerenciamento de propriedades e quantificação de modelos BIM.
+Adiciona uma aba **"PHD Eng. Digital"** ao ribbon com 13 ferramentas cobrindo exportação IFC/FBX/CSV, verificação de propriedades e IDS, gerenciamento e cascateamento de propriedades, importação de dados Excel, criação de Search Sets por propriedade, clash detection e quantificação de modelos BIM.
 
 ---
 
