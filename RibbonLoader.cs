@@ -339,15 +339,40 @@ namespace PHDNavisTools
                         Autodesk.Navisworks.Api.Application.Plugins.ExecuteAddInPlugin("PropertyGroupToSets.PHD")),
                 };
 
+                // Painel Check: apenas as verificações, botões grandes
                 var checkPanelSource = new RibbonPanelSource { Id = "PHD_Check_Panel", Title = "Check" };
                 checkPanelSource.Items.Add(btnCheckProps);
                 checkPanelSource.Items.Add(btnCheckIds);
-                checkPanelSource.Items.Add(btnWriteProps);
-                checkPanelSource.Items.Add(btnExcelImport);
-                checkPanelSource.Items.Add(btnSetToProperty);
-                checkPanelSource.Items.Add(btnClearProps);
-                checkPanelSource.Items.Add(btnCascade);
-                checkPanelSource.Items.Add(btnPropToSets);
+
+                // Painel Propriedades: 6 comandos como botões pequenos em 3 linhas x 2 colunas.
+                // Botões grandes estouravam a largura do ribbon e escondiam os últimos itens.
+                foreach (var b in new[] { btnWriteProps, btnExcelImport, btnSetToProperty,
+                                          btnClearProps, btnCascade, btnPropToSets })
+                {
+                    b.Size        = RibbonItemSize.Standard;
+                    b.Orientation = Orientation.Horizontal;
+                    b.ShowImage   = true;
+                    b.Image       = b.LargeImage;
+                    b.Text        = b.Text?.Replace("\n", " ");
+                }
+
+                var propsRow1 = new RibbonRowPanel();
+                propsRow1.Items.Add(btnWriteProps);
+                propsRow1.Items.Add(new RibbonRowBreak());
+                propsRow1.Items.Add(btnExcelImport);
+                propsRow1.Items.Add(new RibbonRowBreak());
+                propsRow1.Items.Add(btnSetToProperty);
+
+                var propsRow2 = new RibbonRowPanel();
+                propsRow2.Items.Add(btnClearProps);
+                propsRow2.Items.Add(new RibbonRowBreak());
+                propsRow2.Items.Add(btnCascade);
+                propsRow2.Items.Add(new RibbonRowBreak());
+                propsRow2.Items.Add(btnPropToSets);
+
+                var propsPanelSource = new RibbonPanelSource { Id = "PHD_Props_Panel", Title = "Propriedades" };
+                propsPanelSource.Items.Add(propsRow1);
+                propsPanelSource.Items.Add(propsRow2);
 
                 var viewPanelSource = new RibbonPanelSource { Id = "PHD_View_Panel", Title = "View" };
                 viewPanelSource.Items.Add(btnHighlight);
@@ -382,6 +407,7 @@ namespace PHDNavisTools
                 var fbxPanel    = new RibbonPanel { Source = fbxPanelSource };
                 var qtoPanel    = new RibbonPanel { Source = qtoPanelSource };
                 var checkPanel  = new RibbonPanel { Source = checkPanelSource };
+                var propsPanel  = new RibbonPanel { Source = propsPanelSource };
                 var viewPanel   = new RibbonPanel { Source = viewPanelSource };
                 var phdPanel    = new RibbonPanel { Source = phdPanelSource };
 
@@ -397,6 +423,7 @@ namespace PHDNavisTools
                 tab.Panels.Add(fbxPanel);
                 tab.Panels.Add(qtoPanel);
                 tab.Panels.Add(checkPanel);
+                tab.Panels.Add(propsPanel);
                 tab.Panels.Add(viewPanel);
 
                 ribbon.Tabs.Add(tab);
