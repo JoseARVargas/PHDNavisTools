@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using PHDNavisTools.Core;
 using NavisApp = Autodesk.Navisworks.Api.Application;
 
@@ -20,12 +22,14 @@ namespace PHDNavisTools.UI
     public partial class PropertyGroupWindow : Window
     {
         private readonly ObservableCollection<PropPair> _pairs = new();
+        private Dictionary<string, List<string>> _known = new(StringComparer.OrdinalIgnoreCase);
 
         public PropertyGroupWindow()
         {
             InitializeComponent();
             LstProps.ItemsSource = _pairs;
             CmbSep.Text = " | ";
+            CmbTab.SelectionChanged += CmbTab_SelectionChanged;
             Loaded += OnLoaded;
         }
 
@@ -33,18 +37,38 @@ namespace PHDNavisTools.UI
         {
             try
             {
-                var known = NavisPropertyScanner.Scan(maxItems: 3000);
-                CmbTab.ItemsSource  = known.Keys.OrderBy(k => k).ToList();
-                CmbProp.ItemsSource = known.Values
-                    .SelectMany(v => v)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(p => p)
-                    .ToList();
+                _known = NavisPropertyScanner.Scan(maxItems: 3000);
+                CmbTab.ItemsSource = _known.Keys.OrderBy(k => k).ToList();
+                // Sem aba selecionada ainda, CmbProp fica vazio
+                CmbProp.ItemsSource = null;
             }
             catch (Exception ex)
             {
                 AppendLog($"Aviso ao ler abas: {ex.Message}");
             }
+        }
+
+        private void CmbTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var tab = CmbTab.SelectedItem as string ?? CmbTab.Text?.Trim() ?? "";
+            RefreshProps(tab);
+        }
+
+        private void CmbTab_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // Dispara quando o usuário digita uma aba manualmente e sai do campo
+            var tab = CmbTab.Text?.Trim() ?? "";
+            if (CmbTab.SelectedItem == null || !string.Equals(CmbTab.SelectedItem as string, tab, StringComparison.OrdinalIgnoreCase))
+                RefreshProps(tab);
+        }
+
+        private void RefreshProps(string tab)
+        {
+            if (!string.IsNullOrEmpty(tab) && _known.TryGetValue(tab, out var props))
+                CmbProp.ItemsSource = props.OrderBy(p => p).ToList();
+            else
+                CmbProp.ItemsSource = null;
+            CmbProp.Text = "";
         }
 
         private void BtnAdd_Click(object sender, RoutedEventArgs e)

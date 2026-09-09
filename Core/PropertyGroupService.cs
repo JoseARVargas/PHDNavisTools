@@ -45,27 +45,47 @@ namespace PHDNavisTools.Core
                 return result;
             }
 
-            // ── Fase 1: varrer modelo e coletar combinações únicas de valores ────
-            var allItems = options.SelectionOnly
-                ? doc.CurrentSelection.SelectedItems.ToList()
-                : GetAllItems(doc);
+            // ── Fase 1: coletar elementos com feedback a cada 5.000 itens ────────
+            Report("Coletando elementos do modelo...");
+
+            List<ModelItem> allItems;
+            if (options.SelectionOnly)
+            {
+                allItems = doc.CurrentSelection.SelectedItems.ToList();
+                Report($"{allItems.Count:N0} elemento(s) na seleção.");
+            }
+            else
+            {
+                allItems = GetAllItems(doc, count =>
+                    Report($"Coletando: {count:N0} elemento(s)..."));
+                Report($"Coleta concluída: {allItems.Count:N0} elemento(s).");
+            }
 
             int total = allItems.Count;
-            Report($"Varrendo {total:N0} elemento(s)...");
+            if (total == 0)
+            {
+                Report("Nenhum elemento encontrado.");
+                return result;
+            }
+
+            // ── Fase 2: ler propriedades e coletar combinações únicas ─────────────
+            Report($"Lendo propriedades de {total:N0} elemento(s)...");
             ReportValue(0, total);
 
-            // key = valores combinados (ex: "Estrutural | Viga")
-            // values = lista de itens com essa combinação (para criar a Search com condições exatas)
             var uniqueKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
             int processed = 0;
-            int step = Math.Max(500, total / 100);
+            int step      = Math.Max(1000, total / 100);
 
             foreach (var item in allItems)
             {
                 processed++;
+
                 if (processed % step == 0 || processed == total)
+                {
                     ReportValue(processed, total);
+                    if (processed % (step * 10) == 0)
+                        Report($"  {processed:N0}/{total:N0} lidos, {uniqueKeys.Count} combinação(ões) encontrada(s)...");
+                }
 
                 var values = new List<string>(options.Properties.Count);
                 bool valid = true;
@@ -95,9 +115,9 @@ namespace PHDNavisTools.Core
                 return result;
             }
 
-            Report($"{uniqueKeys.Count} valor(es) único(s) encontrado(s). Criando Search Sets...");
+            Report($"{uniqueKeys.Count} valor(es) único(s). Criando Search Sets...");
 
-            // ── Fase 2: criar Search Sets com critérios dinâmicos ────────────────
+            // ── Fase 3: criar Search Sets ─────────────────────────────────────────
             ReportValue(0, uniqueKeys.Count);
             CreateSearchSets(doc, options, uniqueKeys, result);
             ReportValue(uniqueKeys.Count, uniqueKeys.Count);
@@ -194,7 +214,7 @@ namespace PHDNavisTools.Core
             return null;
         }
 
-        private static List<ModelItem> GetAllItems(Document doc)
+        private static List<ModelItem> GetAllItems(Document doc, Action<int>? onProgress = null)
         {
             var result = new List<ModelItem>();
             var stack  = new Stack<ModelItem>();
@@ -209,6 +229,9 @@ namespace PHDNavisTools.Core
                 result.Add(item);
                 foreach (var child in item.Children)
                     stack.Push(child);
+
+                if (onProgress != null && result.Count % 5000 == 0)
+                    onProgress(result.Count);
             }
             return result;
         }

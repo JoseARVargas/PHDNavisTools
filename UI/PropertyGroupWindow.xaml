@@ -55,7 +55,8 @@
                             </Grid.ColumnDefinitions>
                             <ComboBox x:Name="CmbTab" Grid.Column="0"
                                       IsEditable="True" Height="24"
-                                      VerticalContentAlignment="Center"/>
+                                      VerticalContentAlignment="Center"
+                                      LostFocus="CmbTab_LostFocus"/>
                             <ComboBox x:Name="CmbProp" Grid.Column="2"
                                       IsEditable="True" Height="24"
                                       VerticalContentAlignment="Center"/>
